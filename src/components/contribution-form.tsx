@@ -35,7 +35,7 @@ export function ContributionForm({
   }, [state]);
 
   return (
-    <form action={formAction} className="space-y-4 rounded-lg border p-4">
+    <form action={formAction} className="space-y-4">
       <div className="space-y-2">
         <Label>Tipo de lançamento</Label>
         <FormSelect name="kind" defaultValue="current">

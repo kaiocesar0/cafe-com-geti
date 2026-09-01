@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SectionPanel } from "@/components/section-panel";
 import {
   Table,
   TableBody,
@@ -87,15 +88,17 @@ function ItemForm({ item, onDone }: { item?: Item; onDone?: () => void }) {
 
 export function ItemsManager({ items }: { items: Item[] }) {
   return (
-    <div className="space-y-8">
-      <section className="rounded-lg border p-4">
-        <h2 className="mb-4 text-lg font-medium">Novo item</h2>
+    <div className="space-y-6">
+      <SectionPanel title="Novo item">
         <ItemForm />
-      </section>
+      </SectionPanel>
 
-      <section>
-        <h2 className="mb-4 text-lg font-medium">Cadastrados</h2>
-        <Table>
+      <SectionPanel
+        title="Cadastrados"
+        description={`${items.length} item(ns)`}
+      >
+        <div className="overflow-x-auto rounded-lg border">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
@@ -126,7 +129,8 @@ export function ItemsManager({ items }: { items: Item[] }) {
             ))}
           </TableBody>
         </Table>
-      </section>
+        </div>
+      </SectionPanel>
     </div>
   );
 }

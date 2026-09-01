@@ -1,5 +1,6 @@
 import { listItems } from "@/actions/items";
 import { ItemsManager } from "@/components/items-manager";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -8,12 +9,10 @@ export default async function ItensPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold">Itens</h2>
-        <p className="text-muted-foreground">
-          Cadastro e contagem física de estoque
-        </p>
-      </div>
+      <PageHeader
+        title="Itens"
+        description="Cadastro e contagem física de estoque"
+      />
       <ItemsManager items={items} />
     </div>
   );
