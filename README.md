@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Café com Geti
 
-## Getting Started
+App interno para controle de estoque e rodízio da copa.
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router) + shadcn/ui + Tailwind
+- Drizzle ORM + Neon (PostgreSQL)
+- Deploy na Vercel
+
+## Ambientes (Neon)
+
+| Branch | Onde usar |
+|---|---|
+| **`hml`** | Local (`npm run dev`) — branch ativa em `.neon` |
+| **`production`** | Vercel **Production** |
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Desenvolvimento local (hml)
+npx neon checkout hml -y
+npm run db:push
+
+# Ver connection string de prod (para colar na Vercel)
+npx neon connection-string production
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Na **Vercel**: em *Settings → Environment Variables*, `DATABASE_URL` da branch `production` só no ambiente **Production**; opcionalmente use `hml` em **Preview**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup local
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. `npx neon auth`
+2. `npx neon link --project-id crimson-hill-72285250 --branch hml -y`
+3. `npx neon deploy` (atualiza `.env.local`)
+4. Opcional: `GOOGLE_CHAT_WEBHOOK_URL` no `.env.local`
+5. Aplique o schema:
 
-## Learn More
+```bash
+npm install
+npm run db:push
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Banco (Drizzle)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run db:push` — aplica schema no Neon (desenvolvimento)
+- `npm run db:generate` — gera migration a partir do schema
+- `npm run db:migrate` — aplica migrations em `drizzle/`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testes
 
-## Deploy on Vercel
+```bash
+npm test
+npm run typecheck
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Variáveis de ambiente (Vercel)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `DATABASE_URL` | Sim | Connection string do Neon |
+| `GOOGLE_CHAT_WEBHOOK_URL` | Não | Webhook do espaço do Google Chat |
+
+Spec e decisões: `docs/spec.md`, `CONTEXT.md`, `docs/adr/`.
