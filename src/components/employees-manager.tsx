@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SectionPanel } from "@/components/section-panel";
 import {
   Table,
   TableBody,
@@ -92,15 +93,17 @@ function EmployeeForm({
 
 export function EmployeesManager({ employees }: { employees: Employee[] }) {
   return (
-    <div className="space-y-8">
-      <section className="rounded-lg border p-4">
-        <h2 className="mb-4 text-lg font-medium">Novo funcionário</h2>
+    <div className="space-y-6">
+      <SectionPanel title="Novo funcionário">
         <EmployeeForm />
-      </section>
+      </SectionPanel>
 
-      <section>
-        <h2 className="mb-4 text-lg font-medium">Cadastrados</h2>
-        <Table>
+      <SectionPanel
+        title="Cadastrados"
+        description={`${employees.length} funcionário(s)`}
+      >
+        <div className="overflow-x-auto rounded-lg border">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
@@ -133,7 +136,8 @@ export function EmployeesManager({ employees }: { employees: Employee[] }) {
             ))}
           </TableBody>
         </Table>
-      </section>
+        </div>
+      </SectionPanel>
     </div>
   );
 }

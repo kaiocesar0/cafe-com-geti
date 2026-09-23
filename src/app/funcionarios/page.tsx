@@ -1,5 +1,6 @@
 import { listEmployees } from "@/actions/employees";
 import { EmployeesManager } from "@/components/employees-manager";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -8,12 +9,10 @@ export default async function FuncionariosPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold">Funcionários</h2>
-        <p className="text-muted-foreground">
-          Preferência de consumo e participação no rodízio
-        </p>
-      </div>
+      <PageHeader
+        title="Funcionários"
+        description="Preferência de consumo e participação no rodízio"
+      />
       <EmployeesManager employees={employees} />
     </div>
   );

@@ -1,6 +1,10 @@
+import { Package } from "lucide-react";
 import { listEmployees } from "@/actions/employees";
 import { listItems } from "@/actions/items";
 import { DashboardItemCard } from "@/components/dashboard-item-card";
+import { DashboardKpis } from "@/components/dashboard-kpis";
+import { PageHeader } from "@/components/page-header";
+import { SectionPanel } from "@/components/section-panel";
 import { getContributionSummariesForItem } from "@/lib/stock-service";
 import { pickNextInQueue, type RotationEmployee } from "@/lib/rotation";
 
@@ -24,33 +28,49 @@ export default async function DashboardPage() {
     }),
   );
 
+  const lowStockCount = items.filter((item) => item.stock <= 1).length;
+  const criticalCount = items.filter((item) => item.stock === 0).length;
+  const activeEmployees = employees.filter((e) => e.active).length;
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Estoque atual e próximo da vez por item
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Dashboard"
+        description="Estoque atual e próximo da vez por item"
+      />
+
+      <DashboardKpis
+        itemCount={items.length}
+        lowStockCount={lowStockCount}
+        criticalCount={criticalCount}
+        activeEmployees={activeEmployees}
+      />
 
       {cards.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-          Nenhum item cadastrado. Comece em{" "}
-          <a href="/itens" className="text-primary underline">
-            Itens
-          </a>
-          .
-        </p>
+        <SectionPanel title="Nenhum item cadastrado">
+          <p className="text-center text-sm text-muted-foreground">
+            Cadastre os produtos da copa para começar.{" "}
+            <a href="/itens" className="font-medium text-primary underline">
+              Ir para Itens
+            </a>
+          </p>
+        </SectionPanel>
       ) : (
-        <div className="grid gap-4">
-          {cards.map(({ item, nextPerson }) => (
-            <DashboardItemCard
-              key={item.id}
-              item={item}
-              nextPerson={nextPerson}
-            />
-          ))}
-        </div>
+        <SectionPanel
+          title="Itens em estoque"
+          description="Últimas informações da copa"
+          icon={<Package className="size-5" />}
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            {cards.map(({ item, nextPerson }) => (
+              <DashboardItemCard
+                key={item.id}
+                item={item}
+                nextPerson={nextPerson}
+              />
+            ))}
+          </div>
+        </SectionPanel>
       )}
     </div>
   );

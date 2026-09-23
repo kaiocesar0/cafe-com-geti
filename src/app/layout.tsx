@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import { AppHeader } from "@/components/app-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -32,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
+        className={`${inter.variable} min-h-screen font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"
@@ -41,7 +36,7 @@ export default function RootLayout({
           storageKey="cafe-com-geti-theme"
         >
           <AppHeader />
-          <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-10 lg:px-6">
             {children}
           </main>
           <Toaster richColors position="top-center" />
