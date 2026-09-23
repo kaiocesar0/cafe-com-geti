@@ -62,6 +62,22 @@ export async function updateEmployee(
   return { success: true };
 }
 
+export async function setEmployeeActive(
+  id: string,
+  active: boolean,
+): Promise<EmployeeActionState> {
+  const db = getDb();
+  const [current] = await db.select().from(employees).where(eq(employees.id, id));
+  if (!current) return { error: "Funcionário não encontrado" };
+
+  await db.update(employees).set({ active }).where(eq(employees.id, id));
+  revalidatePath("/funcionarios");
+  revalidatePath("/");
+  revalidatePath("/contribuir");
+  revalidatePath("/historico");
+  return { success: true };
+}
+
 export async function listEmployees() {
   const db = getDb();
   return db.select().from(employees).orderBy(employees.createdAt);

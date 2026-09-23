@@ -5,13 +5,19 @@ export interface RotationEmployee {
   name: string;
   preference: Preference;
   active: boolean;
-  createdAt: Date;
+  /** Drivers (ex.: Neon) podem devolver string ISO em vez de Date. */
+  createdAt: Date | string;
 }
 
 export interface ContributionSummary {
   employeeId: string;
   totalQuantity: number;
-  lastContributedAt: Date | null;
+  /** Drivers (ex.: Neon) podem devolver string ISO em vez de Date. */
+  lastContributedAt: Date | string | null;
+}
+
+function toEpochMs(value: Date | string): number {
+  return value instanceof Date ? value.getTime() : new Date(value).getTime();
 }
 
 export function isInQueue(
@@ -47,11 +53,11 @@ export function pickNextInQueue(
 
   candidates.sort((a, b) => {
     if (a.lastAt === null && b.lastAt === null) {
-      return a.employee.createdAt.getTime() - b.employee.createdAt.getTime();
+      return toEpochMs(a.employee.createdAt) - toEpochMs(b.employee.createdAt);
     }
     if (a.lastAt === null) return -1;
     if (b.lastAt === null) return 1;
-    return a.lastAt.getTime() - b.lastAt.getTime();
+    return toEpochMs(a.lastAt) - toEpochMs(b.lastAt);
   });
 
   return candidates[0]?.employee ?? null;

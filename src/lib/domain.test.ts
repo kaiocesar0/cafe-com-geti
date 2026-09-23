@@ -51,6 +51,22 @@ describe("pickNextInQueue", () => {
     expect(next?.name).toBe("João");
   });
 
+  it("aceita datas como string ISO (retorno do Neon em SQL raw)", () => {
+    const next = pickNextInQueue([maria, joao], "coffee", [
+      {
+        employeeId: "1",
+        totalQuantity: 1,
+        lastContributedAt: "2024-06-01T00:00:00.000Z",
+      },
+      {
+        employeeId: "2",
+        totalQuantity: 1,
+        lastContributedAt: "2024-01-01T00:00:00.000Z",
+      },
+    ]);
+    expect(next?.name).toBe("João");
+  });
+
   it("usa ordem de cadastro se ninguém trouxe", () => {
     const next = pickNextInQueue([maria, joao], "coffee", []);
     expect(next?.name).toBe("João");
