@@ -6,10 +6,10 @@
 
 **Blocked by:** 03: Alerta ao cruzar 1
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Contagem define o estoque absoluto e não altera o total contribuído
-- [ ] −1 e +1 alteram só o estoque; −1 que ficaria negativo é recusado
-- [ ] Contagem ou delta que cruza 1 para baixo dispara o alerta com a mensagem já definida
-- [ ] Apagar um item apaga as contribuições dele e não dispara alerta
-- [ ] Criar e editar item persiste nome, unidade, tipo e estoque
+- [x] Contagem define o estoque absoluto e não altera o total contribuído
+- [x] −1 e +1 alteram só o estoque; −1 que ficaria negativo é recusado
+- [x] Contagem ou delta que cruza 1 para baixo dispara o alerta com a mensagem já definida
+- [x] Apagar um item apaga as contribuições dele e não dispara alerta
+- [x] Criar e editar item persiste nome, unidade, tipo e estoque

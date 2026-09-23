@@ -6,12 +6,12 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Existe uma branch Neon persistente, só com schema, que não é `hml` nem `production` e não expira
-- [ ] `npm test` lê `DATABASE_URL` só de `.env.test`; sem essa variável, falha antes do migrate e antes do primeiro delete
-- [ ] Se a URL de `.env.test` for igual à do app, a suíte falha do mesmo jeito
-- [ ] Com a URL da branch de teste, o migrate roda nela e cada caso começa com as três tabelas vazias
-- [ ] Os testes de fila e do predicado de alerta continuam passando no mesmo comando
-- [ ] Um caso grava e lê de volta um funcionário nessa branch
-- [ ] Os casos que falam com o banco rodam em série
+- [x] Existe uma branch Neon persistente, só com schema, que não é `hml` nem `production` e não expira
+- [x] `npm test` lê `DATABASE_URL` só de `.env.test`; sem essa variável, falha antes do migrate e antes do primeiro delete
+- [x] Se a URL de `.env.test` for igual à do app, a suíte falha do mesmo jeito
+- [x] Com a URL da branch de teste, o migrate roda nela e cada caso começa com as três tabelas vazias
+- [x] Os testes de fila e do predicado de alerta continuam passando no mesmo comando
+- [x] Um caso grava e lê de volta um funcionário nessa branch
+- [x] Os casos que falam com o banco rodam em série

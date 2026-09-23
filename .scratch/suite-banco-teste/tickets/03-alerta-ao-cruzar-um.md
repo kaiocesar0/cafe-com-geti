@@ -6,9 +6,9 @@
 
 **Blocked by:** 01: Trava do banco de teste
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] 2→0, 3→1 e 5→0 produzem a mensagem com item, quantidade nova e próximo da vez (ou “ninguém na fila”)
-- [ ] 1→0, 5→2 e estoque inalterado não produzem mensagem
-- [ ] Nenhum POST sai para o espaço do Google Chat
-- [ ] Se o envio falha, o estoque novo permanece
+- [x] 2→0, 3→1 e 5→0 produzem a mensagem com item, quantidade nova e próximo da vez (ou “ninguém na fila”)
+- [x] 1→0, 5→2 e estoque inalterado não produzem mensagem
+- [x] Nenhum POST sai para o espaço do Google Chat
+- [x] Se o envio falha, o estoque novo permanece
