@@ -6,10 +6,10 @@
 
 **Blocked by:** 01: Trava do banco de teste
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Contribuição vigente aumenta estoque e total contribuído
-- [ ] Contribuição passada aumenta só o total; o estoque da prateleira permanece
-- [ ] Funcionário fora da fila registra e a quantidade entra no total
-- [ ] Revalidar as telas não exige um request do Next
-- [ ] Esse caminho não dispara alerta quando o estoque não cruzou 1
+- [x] Contribuição vigente aumenta estoque e total contribuído
+- [x] Contribuição passada aumenta só o total; o estoque da prateleira permanece
+- [x] Funcionário fora da fila registra e a quantidade entra no total
+- [x] Revalidar as telas não exige um request do Next
+- [x] Esse caminho não dispara alerta quando o estoque não cruzou 1

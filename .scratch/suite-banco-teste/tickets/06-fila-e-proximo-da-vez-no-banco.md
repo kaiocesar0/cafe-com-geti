@@ -6,9 +6,9 @@
 
 **Blocked by:** 02: Contribuição vigente e passada
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Inativar um funcionário tira essa pessoa de todas as filas e o próximo da vez lido do banco muda
-- [ ] Quem toma só leite não é o próximo de café nem de filtro, mesmo com total alto
-- [ ] Menor total, desempate por tempo e ordem de cadastro batem com a regra pura, a partir das linhas do banco, contando vigente e passada
-- [ ] Atualizar nome e preferência persiste, e a fila acompanha a preferência nova
+- [x] Inativar um funcionário tira essa pessoa de todas as filas e o próximo da vez lido do banco muda
+- [x] Quem toma só leite não é o próximo de café nem de filtro, mesmo com total alto
+- [x] Menor total, desempate por tempo e ordem de cadastro batem com a regra pura, a partir das linhas do banco, contando vigente e passada
+- [x] Atualizar nome e preferência persiste, e a fila acompanha a preferência nova

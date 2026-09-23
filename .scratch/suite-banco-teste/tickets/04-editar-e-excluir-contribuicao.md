@@ -6,10 +6,10 @@
 
 **Blocked by:** 01: Trava do banco de teste
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Excluir vigente desfaz o estoque; excluir passada não mexe no estoque; o total recalcula nos dois casos
-- [ ] Exclusão que deixaria estoque negativo é recusada e a contribuição permanece
-- [ ] Edição não troca vigente por passada nem o inverso
-- [ ] Trocar o item na edição de uma vigente move a quantidade do item antigo para o novo
-- [ ] Edição que deixaria estoque negativo é recusada
+- [x] Excluir vigente desfaz o estoque; excluir passada não mexe no estoque; o total recalcula nos dois casos
+- [x] Exclusão que deixaria estoque negativo é recusada e a contribuição permanece
+- [x] Edição não troca vigente por passada nem o inverso
+- [x] Trocar o item na edição de uma vigente move a quantidade do item antigo para o novo
+- [x] Edição que deixaria estoque negativo é recusada

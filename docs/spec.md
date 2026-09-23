@@ -106,19 +106,33 @@ Identidade: tokens ADR-0013, **sem** marca DPE. Nome do produto: Café com Geti.
 
 Testar **comportamento** das regras, não componentes shadcn.
 
-Seam principal: módulo `rotation` + predicado `shouldNotifyStockCrossedOne(prev, next)`.
+A suíte é Vitest, no mesmo `npm test`, em série.
 
-Casos mínimos:
+Regras puras: `rotation` (próximo da vez) e `shouldNotifyStockCrossedOne`.
+
+Server Actions e `stock-service` rodam contra uma branch Neon persistente, só com schema, chamada `test`, distinta de `hml` e `production`. Ela não expira. A URL fica em `.env.test`. Cada `npm test` aplica o migrate nessa URL. Cada caso começa com contribuições, itens e funcionários vazios.
+
+Duas travas: a suíte lê `DATABASE_URL` só de `.env.test`. Sem essa variável, o comando falha antes do migrate e antes do primeiro delete. Se a URL for igual à de `.env` ou `.env.local`, falha do mesmo jeito.
+
+`revalidatePath` é espião no-op, então a action não precisa de um request do Next. `notifyLowStock` é espião: o teste confere a mensagem e nenhum POST sai ao espaço do Google Chat. Se o espião falha, o estoque novo permanece.
+
+Casos:
 
 - Maria 1 café, João 2 → próximo café = Maria.
 - Empate de total → quem contribuiu há mais tempo.
 - Fila vazia de contribuintes → ordem de cadastro.
-- Só leite não é próximo de `coffee`/`filter` mesmo com total alto.
+- Vigente e passada entram no total lido do banco.
+- Só leite não é próximo de café nem de filtro, mesmo com total alto.
+- Inativar tira a pessoa de todas as filas. Mudar preferência muda a fila. O nome novo aparece como próximo da vez.
+- Quem está fora da fila pode registrar, e a quantidade entra no total.
 - Passada não muda estoque; vigente muda.
-- 2→0 notifica; 1→0 não; GET não notifica.
-- Excluir vigente desfaz estoque; excluir passada não.
-
-Ainda não há suíte no repo; Vitest (ou equivalente) no mesmo projeto Next.
+- Excluir vigente desfaz estoque; excluir passada não. Total recalcula nos dois casos.
+- Exclusão ou edição que deixaria estoque negativo é recusada e a linha fica.
+- Edição não troca vigente por passada. Trocar o item numa vigente move a quantidade.
+- Contagem (`updateItem`) define o estoque absoluto e não mexe no total. −1/+1 (`adjustItemStock`) idem; −1 que ficaria negativo é recusado.
+- 2→0, 3→1 e 5→0 alertam com item, quantidade nova e próximo da vez (ou “ninguém na fila”). 1→0, 5→2 e estoque igual não alertam. Abrir o app não alerta.
+- Contagem ou delta que cruza 1 alerta. Apagar item apaga as contribuições e não alerta.
+- Criar e editar item persiste nome, unidade, tipo e estoque. Criar funcionário grava e a listagem lê de volta.
 
 ## Out of Scope
 
