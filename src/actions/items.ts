@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
-import { items } from "@/db/schema";
+import { contributions, items } from "@/db/schema";
 import { maybeNotifyStockCrossed } from "@/lib/stock-service";
 import { z } from "zod";
 
@@ -76,6 +76,21 @@ export async function updateItem(
 
   revalidatePath("/itens");
   revalidatePath("/");
+  return { success: true };
+}
+
+export async function deleteItem(id: string): Promise<ItemActionState> {
+  const db = getDb();
+  const [current] = await db.select().from(items).where(eq(items.id, id));
+  if (!current) return { error: "Item não encontrado" };
+
+  await db.delete(contributions).where(eq(contributions.itemId, id));
+  await db.delete(items).where(eq(items.id, id));
+
+  revalidatePath("/itens");
+  revalidatePath("/");
+  revalidatePath("/contribuir");
+  revalidatePath("/historico");
   return { success: true };
 }
 

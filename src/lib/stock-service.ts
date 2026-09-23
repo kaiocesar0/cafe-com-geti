@@ -27,7 +27,7 @@ export async function getContributionSummariesForItem(
       totalQuantity: sql<number>`coalesce(sum(${contributions.quantity}), 0)`.mapWith(
         Number,
       ),
-      lastContributedAt: sql<Date | null>`max(${contributions.occurredAt})`,
+      lastContributedAt: sql<Date | string | null>`max(${contributions.occurredAt})`,
     })
     .from(contributions)
     .where(eq(contributions.itemId, itemId))
@@ -36,7 +36,12 @@ export async function getContributionSummariesForItem(
   return rows.map((row) => ({
     employeeId: row.employeeId,
     totalQuantity: row.totalQuantity,
-    lastContributedAt: row.lastContributedAt,
+    lastContributedAt:
+      row.lastContributedAt == null
+        ? null
+        : row.lastContributedAt instanceof Date
+          ? row.lastContributedAt
+          : new Date(row.lastContributedAt),
   }));
 }
 

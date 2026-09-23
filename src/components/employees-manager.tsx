@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
 import {
   createEmployee,
+  setEmployeeActive,
   updateEmployee,
   type EmployeeActionState,
 } from "@/actions/employees";
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 const initialState: EmployeeActionState = {};
 
