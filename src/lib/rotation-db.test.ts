@@ -4,6 +4,7 @@ import { getNextPersonNameForItem } from "@/lib/stock-service";
 import {
   employeeForm,
   hire,
+  hireAdmin,
   mustEmployee,
   recordContribution,
   setCreatedAt,
@@ -11,7 +12,7 @@ import {
 } from "@/test/fixtures";
 
 it("menor total, desempate e ordem de cadastro valem para vigente e passada", async () => {
-  const joao = await hire({ name: "João", preference: "coffee" });
+  const joao = await hireAdmin({ name: "João", preference: "coffee" });
   const maria = await hire({ name: "Maria", preference: "coffee" });
   await setCreatedAt(joao.id, "2024-01-01T00:00:00.000Z");
   await setCreatedAt(maria.id, "2024-06-01T00:00:00.000Z");
@@ -46,7 +47,7 @@ it("menor total, desempate e ordem de cadastro valem para vigente e passada", as
 });
 
 it("quem toma só leite não é o próximo do café nem do filtro, mesmo com total alto", async () => {
-  const ana = await hire({ name: "Ana", preference: "milk" });
+  const ana = await hireAdmin({ name: "Ana", preference: "milk" });
   await hire({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 10 });
   const filtro = await stockItem({ name: "Filtro", kind: "filter", stock: 10 });
@@ -69,8 +70,8 @@ it("quem toma só leite não é o próximo do café nem do filtro, mesmo com tot
 });
 
 it("inativar tira a pessoa de todas as filas", async () => {
+  const joao = await hireAdmin({ name: "João", preference: "coffee" });
   const maria = await hire({ name: "Maria", preference: "both" });
-  const joao = await hire({ name: "João", preference: "coffee" });
   await setCreatedAt(maria.id, "2024-01-01T00:00:00.000Z");
   await setCreatedAt(joao.id, "2024-06-01T00:00:00.000Z");
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 4 });
@@ -86,8 +87,8 @@ it("inativar tira a pessoa de todas as filas", async () => {
 });
 
 it("atualizar nome e preferência persiste e a fila acompanha", async () => {
+  await hireAdmin({ name: "João", preference: "coffee" });
   const maria = await hire({ name: "Maria", preference: "coffee" });
-  await hire({ name: "João", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 4 });
   const leite = await stockItem({ name: "Leite", kind: "milk", stock: 4 });
   await setCreatedAt(maria.id, "2024-01-01T00:00:00.000Z");

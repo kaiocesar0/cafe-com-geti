@@ -1,18 +1,33 @@
 import { expect, it } from "vitest";
 import { getCurrentSession, login, logout } from "@/actions/auth";
-import { setEmployeeActive } from "@/actions/employees";
+import { setEmployeeActive as setActiveAs } from "@/actions/employees";
 import { getDb } from "@/db";
 import { contributions, employees, items, sessions } from "@/db/schema";
 import { INVALID_CREDENTIALS } from "@/lib/auth-messages";
 import { hashSessionToken, SESSION_COOKIE_NAME, SESSION_TTL_MS } from "@/lib/session";
 import { advanceDays, testNow } from "@/test/clock";
-import { cookieJar, inBrowser, newBrowser } from "@/test/cookie-jar";
-import { hireAdminGeral } from "@/test/fixtures";
+import { CookieJar, cookieJar, inBrowser, newBrowser } from "@/test/cookie-jar";
+import { hireAdmin, hireAdminGeral } from "@/test/fixtures";
 
 const credentials = { username: "kaio", password: "cafe-forte-2024" };
 
 function adminGeral() {
   return hireAdminGeral({ name: "Kaio", preference: "coffee", ...credentials });
+}
+
+/** Outra pessoa, em outro navegador, liga ou desliga a conta. */
+function setEmployeeActive(id: string, active: boolean) {
+  return inBrowser(new CookieJar(), async () => {
+    await hireAdmin({
+      name: `Outra admin geral ${active ? "liga" : "desliga"}`,
+      preference: "milk",
+      username: `outra-${active ? "liga" : "desliga"}`,
+      role: "admin_geral",
+    });
+    const result = await setActiveAs(id, active);
+    await logout();
+    return result;
+  });
 }
 
 function sessionRows() {

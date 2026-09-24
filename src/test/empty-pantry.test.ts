@@ -2,10 +2,10 @@ import { expect, it } from "vitest";
 import { getDb } from "@/db";
 import { sessions } from "@/db/schema";
 import { emptyPantry } from "@/test/empty-pantry";
-import { hire } from "@/test/fixtures";
+import { hireAdmin } from "@/test/fixtures";
 
 it("esvazia também as sessões", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   await getDb().insert(sessions).values({
     employeeId: maria.id,
     tokenHash: "token-de-teste",

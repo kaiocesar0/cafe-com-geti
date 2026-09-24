@@ -3,7 +3,9 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
-import { employees } from "@/db/schema";
+import { employees, type AccountEmployee, type PublicEmployee } from "@/db/schema";
+import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
+import { currentWriter } from "@/lib/authorization";
 import { z } from "zod";
 
 const employeeSchema = z.object({
@@ -21,6 +23,8 @@ export async function createEmployee(
   _prev: EmployeeActionState,
   formData: FormData,
 ): Promise<EmployeeActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const parsed = employeeSchema.safeParse({
     name: formData.get("name"),
     preference: formData.get("preference"),
@@ -43,6 +47,8 @@ export async function updateEmployee(
   _prev: EmployeeActionState,
   formData: FormData,
 ): Promise<EmployeeActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const parsed = employeeSchema.safeParse({
     name: formData.get("name"),
     preference: formData.get("preference"),
@@ -66,6 +72,8 @@ export async function setEmployeeActive(
   id: string,
   active: boolean,
 ): Promise<EmployeeActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const db = getDb();
   const [current] = await db.select().from(employees).where(eq(employees.id, id));
   if (!current) return { error: "Funcionário não encontrado" };
@@ -78,18 +86,22 @@ export async function setEmployeeActive(
   return { success: true };
 }
 
-export async function listEmployees() {
+const publicColumns = {
+  id: employees.id,
+  name: employees.name,
+  preference: employees.preference,
+  active: employees.active,
+  createdAt: employees.createdAt,
+};
+
+/** Visitante recebe só o público; username e perfil só com sessão de admin ou admin geral. */
+export async function listEmployees(): Promise<PublicEmployee[] | AccountEmployee[]> {
   const db = getDb();
+  if (!(await currentWriter())) {
+    return db.select(publicColumns).from(employees).orderBy(employees.createdAt);
+  }
   return db
-    .select({
-      id: employees.id,
-      name: employees.name,
-      preference: employees.preference,
-      active: employees.active,
-      role: employees.role,
-      username: employees.username,
-      createdAt: employees.createdAt,
-    })
+    .select({ ...publicColumns, role: employees.role, username: employees.username })
     .from(employees)
     .orderBy(employees.createdAt);
 }

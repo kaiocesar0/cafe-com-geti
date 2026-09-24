@@ -5,7 +5,13 @@ import { createEmployee, listEmployees } from "@/actions/employees";
 import { createItem, listItems } from "@/actions/items";
 import { createContribution } from "@/actions/contributions";
 import { getDb } from "@/db";
-import { employees, type ItemKind, type Preference } from "@/db/schema";
+import {
+  employees,
+  type EmployeeRole,
+  type ItemKind,
+  type Preference,
+} from "@/db/schema";
+import { hashPassword } from "@/lib/password";
 
 export function employeeForm(input: {
   name: string;
@@ -81,6 +87,38 @@ export async function signIn(input: { username: string; password: string }) {
   const result = await login(input);
   if (result.error) throw new Error(result.error);
   return result.session!;
+}
+
+export const ADMIN_PASSWORD = "senha-da-suite";
+
+/**
+ * Grava a pessoa já com login e abre a sessão dela neste pote de cookies.
+ * Ela entra na fila como qualquer funcionário: o perfil não mexe na fila.
+ */
+export async function hireAdmin(input: {
+  name: string;
+  preference: Preference;
+  username?: string;
+  role?: Exclude<EmployeeRole, "funcionario">;
+}) {
+  const username = input.username ?? "admin";
+  await getDb()
+    .insert(employees)
+    .values({
+      name: input.name,
+      preference: input.preference,
+      active: true,
+      role: input.role ?? "admin",
+      username,
+      passwordHash: await hashPassword(ADMIN_PASSWORD),
+    });
+  await signIn({ username, password: ADMIN_PASSWORD });
+  return mustEmployee(input.name);
+}
+
+/** Sessão de admin para casos que não contratam ninguém antes de gravar. */
+export function openAdminSession() {
+  return hireAdmin({ name: "Admin da suíte", preference: "coffee" });
 }
 
 export async function stockItem(input: {
