@@ -6,8 +6,8 @@ import { contributions, employees, items, sessions } from "@/db/schema";
 import { INVALID_CREDENTIALS } from "@/lib/auth-messages";
 import { LOGIN_LOCK_MS, loginLockCookieName } from "@/lib/login-lock";
 import { advanceClock, advanceDays } from "@/test/clock";
-import { cookieJar, inBrowser, newBrowser } from "@/test/cookie-jar";
-import { hireAdminGeral } from "@/test/fixtures";
+import { CookieJar, cookieJar, inBrowser, newBrowser } from "@/test/cookie-jar";
+import { hireAdminGeral, signIn } from "@/test/fixtures";
 
 const kaio = { username: "kaio", password: "cafe-forte-2024" };
 const bia = { username: "bia", password: "cha-verde-2024" };
@@ -171,11 +171,16 @@ it("tentar durante a trava não empurra o fim dela", async () => {
 
 it("conta inativa também conta erro e trava", async () => {
   const kaioAccount = await hireAdminGeral({ name: "Kaio", ...kaio });
-  await setEmployeeActive(kaioAccount.id, false);
+  await hireAdminGeral({ name: "Bia", preference: "milk", ...bia });
+  const biaBrowser = new CookieJar();
+  await inBrowser(biaBrowser, async () => {
+    await signIn(bia);
+    await setEmployeeActive(kaioAccount.id, false);
+  });
   await login(kaio);
   await fail("kaio", 4);
 
-  await setEmployeeActive(kaioAccount.id, true);
+  await inBrowser(biaBrowser, () => setEmployeeActive(kaioAccount.id, true));
 
   expect((await login(kaio)).error).toBe(INVALID_CREDENTIALS);
 });
