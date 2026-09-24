@@ -1,10 +1,14 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getDb } from "@/db";
 import { employees, sessions, type EmployeeRole } from "@/db/schema";
-import { INVALID_CREDENTIALS } from "@/lib/auth-messages";
+import {
+  INVALID_CREDENTIALS,
+  SIGN_IN_REQUIRED,
+  WRONG_CURRENT_PASSWORD,
+} from "@/lib/auth-messages";
 import { now } from "@/lib/clock";
 import {
   isLoginLocked,
@@ -13,7 +17,12 @@ import {
   readLoginLock,
   registerLoginFailure,
 } from "@/lib/login-lock";
-import { verifyPassword } from "@/lib/password";
+import {
+  hashPassword,
+  MIN_PASSWORD_LENGTH,
+  PASSWORD_ERROR,
+  verifyPassword,
+} from "@/lib/password";
 import {
   createSessionToken,
   hashSessionToken,
@@ -153,6 +162,54 @@ export async function getCurrentSession(): Promise<SessionInfo | null> {
     role: found.role,
     expiresAt,
   };
+}
+
+export type ChangePasswordResult = {
+  error?: string;
+};
+
+/** Mantém a sessão deste navegador e derruba as outras da mesma pessoa. */
+export async function changeOwnPassword(input: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<ChangePasswordResult> {
+  const session = await getCurrentSession();
+  if (!session) return { error: SIGN_IN_REQUIRED };
+
+  const newPassword = input.newPassword ?? "";
+  if (newPassword.length < MIN_PASSWORD_LENGTH) return { error: PASSWORD_ERROR };
+
+  const db = getDb();
+  const [account] = await db
+    .select({ passwordHash: employees.passwordHash })
+    .from(employees)
+    .where(eq(employees.id, session.employeeId));
+
+  if (!account?.passwordHash || !input.currentPassword) {
+    return { error: WRONG_CURRENT_PASSWORD };
+  }
+  if (!(await verifyPassword(account.passwordHash, input.currentPassword))) {
+    return { error: WRONG_CURRENT_PASSWORD };
+  }
+
+  const jar = await cookies();
+  const token = jar.get(SESSION_COOKIE_NAME)!.value;
+  const passwordHash = await hashPassword(newPassword);
+
+  await db.batch([
+    db.update(employees).set({ passwordHash }).where(eq(employees.id, session.employeeId)),
+    db
+      .delete(sessions)
+      .where(
+        and(
+          eq(sessions.employeeId, session.employeeId),
+          ne(sessions.tokenHash, hashSessionToken(token)),
+        ),
+      ),
+  ]);
+
+  jar.delete(loginLockCookieName(session.username));
+  return {};
 }
 
 async function openSession(employeeId: string): Promise<Date> {
