@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] Schema tem perfil, username único (quando presente), hash de senha e tabela de sessões
 - [x] Funcionários existentes migram para perfil funcionário, sem username e sem senha
