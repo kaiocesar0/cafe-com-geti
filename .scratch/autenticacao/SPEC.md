@@ -1,6 +1,6 @@
 # Spec — Autenticação
 
-Status: ready-for-agent  
+Status: ready-for-human
 Fuso: `America/Sao_Paulo`  
 Glossário: [CONTEXT.md](../../CONTEXT.md)
 
