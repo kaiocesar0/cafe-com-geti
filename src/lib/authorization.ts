@@ -1,7 +1,7 @@
 import { and, eq, ne } from "drizzle-orm";
-import { getCurrentSession, type SessionInfo } from "@/actions/auth";
 import { getDb } from "@/db";
 import { employees, type Employee } from "@/db/schema";
+import { getCurrentSession, type SessionInfo } from "@/lib/current-session";
 import type { MatrixTarget } from "@/lib/role-matrix";
 
 const WRITER_ROLES: ReadonlySet<SessionInfo["role"]> = new Set(["admin", "admin_geral"]);

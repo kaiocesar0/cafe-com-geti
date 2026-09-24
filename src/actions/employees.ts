@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import type { SessionInfo } from "@/actions/auth";
+import type { SessionInfo } from "@/lib/current-session";
 import { getDb } from "@/db";
 import {
   employees,

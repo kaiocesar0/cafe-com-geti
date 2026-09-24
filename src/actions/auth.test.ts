@@ -1,13 +1,20 @@
-import { expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { getCurrentSession, login, logout } from "@/actions/auth";
 import { setEmployeeActive as setActiveAs } from "@/actions/employees";
 import { getDb } from "@/db";
 import { contributions, employees, items, sessions } from "@/db/schema";
 import { INVALID_CREDENTIALS } from "@/lib/auth-messages";
+import { slideSessionForProxy } from "@/lib/current-session";
 import { hashSessionToken, SESSION_COOKIE_NAME, SESSION_TTL_MS } from "@/lib/session";
 import { advanceDays, testNow } from "@/test/clock";
 import { CookieJar, cookieJar, inBrowser, newBrowser } from "@/test/cookie-jar";
 import { hireAdmin, hireAdminGeral } from "@/test/fixtures";
+
+const suitePepper = process.env.AUTH_PEPPER;
+
+afterEach(() => {
+  process.env.AUTH_PEPPER = suitePepper;
+});
 
 const credentials = { username: "kaio", password: "cafe-forte-2024" };
 
@@ -178,10 +185,65 @@ it("sessão vale 14 dias desde o último uso que a valida", async () => {
   expect(renewed.expiresAt.getTime() - testNow().getTime()).toBeGreaterThan(
     SESSION_TTL_MS - 5000,
   );
+  // Cookie e banco avançam juntos na validação que consegue gravar o cookie.
   expect(sessionCookie()!.expires!.getTime()).toBe(renewed.expiresAt.getTime());
 
   advanceDays(13);
   expect(await getCurrentSession()).not.toBeNull();
+});
+
+it("proxy renova cookie e banco juntos quando a sessão valida", async () => {
+  await adminGeral();
+  await login(credentials);
+  const token = sessionCookie()!.value;
+  const [opened] = await sessionRows();
+
+  advanceDays(13);
+  const result = await slideSessionForProxy(token);
+
+  expect(result).toMatchObject({ ok: true });
+  if (!result.ok) return;
+
+  const [renewed] = await sessionRows();
+  expect(renewed.expiresAt.getTime()).toBeGreaterThan(opened.expiresAt.getTime());
+  expect(result.cookie.expires.getTime()).toBe(renewed.expiresAt.getTime());
+  expect(result.cookie.expires.getTime() - testNow().getTime()).toBeGreaterThan(
+    SESSION_TTL_MS - 5000,
+  );
+});
+
+it("se cookies().set falha, o banco não avança o vencimento sozinho", async () => {
+  await adminGeral();
+  await login(credentials);
+  const [opened] = await sessionRows();
+  const cookieExpires = sessionCookie()!.expires!.getTime();
+
+  advanceDays(13);
+
+  const jar = cookieJar();
+  const originalSet = jar.set.bind(jar);
+  jar.set = (() => {
+    throw new Error("Cookies can only be modified in a Server Action or Route Handler.");
+  }) as typeof jar.set;
+
+  try {
+    expect(await getCurrentSession()).not.toBeNull();
+  } finally {
+    jar.set = originalSet;
+  }
+
+  const [unchanged] = await sessionRows();
+  expect(unchanged.expiresAt.getTime()).toBe(opened.expiresAt.getTime());
+  expect(sessionCookie()!.expires!.getTime()).toBe(cookieExpires);
+});
+
+it("sem AUTH_PEPPER o login falha controlado e não abre sessão", async () => {
+  await adminGeral();
+  delete process.env.AUTH_PEPPER;
+
+  await expect(login(credentials)).resolves.toEqual({ error: INVALID_CREDENTIALS });
+  expect(await sessionRows()).toEqual([]);
+  expect(sessionCookie()).toBeUndefined();
 });
 
 it("relógio avançado além de 14 dias sem uso vence a sessão e limpa o cookie", async () => {
