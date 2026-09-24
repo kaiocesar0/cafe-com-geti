@@ -6,6 +6,13 @@ import { getDb } from "@/db";
 import { employees, sessions, type EmployeeRole } from "@/db/schema";
 import { INVALID_CREDENTIALS } from "@/lib/auth-messages";
 import { now } from "@/lib/clock";
+import {
+  isLoginLocked,
+  loginLockCookie,
+  loginLockCookieName,
+  readLoginLock,
+  registerLoginFailure,
+} from "@/lib/login-lock";
 import { verifyPassword } from "@/lib/password";
 import {
   createSessionToken,
@@ -14,7 +21,7 @@ import {
   SESSION_TTL_MS,
   sessionCookie,
 } from "@/lib/session";
-import { normalizeUsername } from "@/lib/username";
+import { isValidUsername, normalizeUsername } from "@/lib/username";
 
 export type SessionInfo = {
   employeeId: string;
@@ -34,8 +41,32 @@ export async function login(input: {
   password: string;
 }): Promise<LoginResult> {
   const username = normalizeUsername(input.username ?? "");
-  if (!username || !input.password) return { error: INVALID_CREDENTIALS };
+  if (!isValidUsername(username) || !input.password) return { error: INVALID_CREDENTIALS };
 
+  const jar = await cookies();
+  const moment = now();
+  const lockCookieName = loginLockCookieName(username);
+  const lock = readLoginLock(username, jar.get(lockCookieName)?.value, moment);
+
+  if (isLoginLocked(lock, moment)) {
+    jar.set(loginLockCookie(username, lock, moment));
+    return { error: INVALID_CREDENTIALS };
+  }
+
+  const session = await checkCredentials(username, input.password);
+  if (!session) {
+    jar.set(loginLockCookie(username, registerLoginFailure(lock, moment), moment));
+    return { error: INVALID_CREDENTIALS };
+  }
+
+  jar.delete(lockCookieName);
+  return { session };
+}
+
+async function checkCredentials(
+  username: string,
+  password: string,
+): Promise<SessionInfo | null> {
   const [account] = await getDb()
     .select({
       id: employees.id,
@@ -48,23 +79,19 @@ export async function login(input: {
     .from(employees)
     .where(eq(employees.username, username));
 
-  if (!account?.passwordHash) return { error: INVALID_CREDENTIALS };
-  if (!account.active) return { error: INVALID_CREDENTIALS };
-  if (account.role === "funcionario") return { error: INVALID_CREDENTIALS };
-  if (!(await verifyPassword(account.passwordHash, input.password))) {
-    return { error: INVALID_CREDENTIALS };
-  }
+  if (!account?.passwordHash) return null;
+  if (!account.active) return null;
+  if (account.role === "funcionario") return null;
+  if (!(await verifyPassword(account.passwordHash, password))) return null;
 
   const expiresAt = await openSession(account.id);
 
   return {
-    session: {
-      employeeId: account.id,
-      name: account.name,
-      username: account.username!,
-      role: account.role,
-      expiresAt,
-    },
+    employeeId: account.id,
+    name: account.name,
+    username: account.username!,
+    role: account.role,
+    expiresAt,
   };
 }
 

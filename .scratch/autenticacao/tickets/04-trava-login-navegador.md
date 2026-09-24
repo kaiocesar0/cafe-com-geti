@@ -6,13 +6,13 @@
 
 **Blocked by:** 02: Entrar, sair e sessão
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Cinco erros seguidos travam esse username neste pote por 15 minutos, inclusive com senha certa
-- [ ] Outro pote entra com o mesmo username enquanto o primeiro está travado
-- [ ] Outro username no mesmo pote não trava junto
-- [ ] Acerto zera a trava deste pote nesse username
-- [ ] Apagar o cookie zera; cookie adulterado não zera
-- [ ] Contador não expira sozinho antes da quinta falha; ao fim dos 15 minutos o contador zera
-- [ ] Username inexistente não grava tentativa; mensagem permanece “credenciais inválidas”
-- [ ] Sessão já aberta não cai por causa da trava
+- [x] Cinco erros seguidos travam esse username neste pote por 15 minutos, inclusive com senha certa
+- [x] Outro pote entra com o mesmo username enquanto o primeiro está travado
+- [x] Outro username no mesmo pote não trava junto
+- [x] Acerto zera a trava deste pote nesse username
+- [x] Apagar o cookie zera; cookie adulterado não zera
+- [x] Contador não expira sozinho antes da quinta falha; ao fim dos 15 minutos o contador zera
+- [x] Username inexistente não grava tentativa; mensagem permanece “credenciais inválidas”
+- [x] Sessão já aberta não cai por causa da trava
