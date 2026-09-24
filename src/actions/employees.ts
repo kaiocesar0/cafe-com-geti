@@ -2,10 +2,24 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import type { SessionInfo } from "@/actions/auth";
 import { getDb } from "@/db";
-import { employees, type AccountEmployee, type PublicEmployee } from "@/db/schema";
-import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
-import { currentWriter } from "@/lib/authorization";
+import {
+  employees,
+  type AccountEmployee,
+  type Preference,
+  type PublicEmployee,
+} from "@/db/schema";
+import { NO_PERMISSION, SIGN_IN_REQUIRED } from "@/lib/auth-messages";
+import {
+  canEditProfile,
+  canSetActive,
+  currentWriter,
+  findEmployee,
+  isLastActiveAdminGeral,
+  type MatrixTarget,
+} from "@/lib/authorization";
+import { deleteAllSessionsOf } from "@/lib/session-service";
 import { z } from "zod";
 
 const employeeSchema = z.object({
@@ -18,6 +32,39 @@ export type EmployeeActionState = {
   error?: string;
   success?: boolean;
 };
+
+const EMPLOYEE_NOT_FOUND = "Funcionário não encontrado";
+
+/**
+ * A matriz em uma passada: `null` libera a gravação, string é o motivo que volta para a tela.
+ * Perfil e username não saem daqui; quem mexe neles são as operações de promover e rebaixar.
+ */
+async function denyEmployeeWrite(
+  actor: SessionInfo,
+  target: MatrixTarget,
+  nextActive: boolean,
+): Promise<string | null> {
+  if (!canEditProfile(actor, target)) return NO_PERMISSION;
+  if (nextActive === target.active) return null;
+  if (!nextActive && (await isLastActiveAdminGeral(target))) return NO_PERMISSION;
+  if (!canSetActive(actor, target)) return NO_PERMISSION;
+  return null;
+}
+
+/** Quem perde o acesso perde junto o que tem aberto em qualquer navegador. */
+async function applyEmployeeChange(
+  target: MatrixTarget,
+  change: { name?: string; preference?: Preference; active: boolean },
+) {
+  const db = getDb();
+  const update = db.update(employees).set(change).where(eq(employees.id, target.id));
+
+  if (target.active && !change.active) {
+    await db.batch([update, deleteAllSessionsOf(db, target.id)]);
+    return;
+  }
+  await update;
+}
 
 export async function createEmployee(
   _prev: EmployeeActionState,
@@ -47,7 +94,8 @@ export async function updateEmployee(
   _prev: EmployeeActionState,
   formData: FormData,
 ): Promise<EmployeeActionState> {
-  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+  const actor = await currentWriter();
+  if (!actor) return { error: SIGN_IN_REQUIRED };
 
   const parsed = employeeSchema.safeParse({
     name: formData.get("name"),
@@ -59,8 +107,13 @@ export async function updateEmployee(
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   }
 
-  const db = getDb();
-  await db.update(employees).set(parsed.data).where(eq(employees.id, id));
+  const target = await findEmployee(id);
+  if (!target) return { error: EMPLOYEE_NOT_FOUND };
+
+  const denial = await denyEmployeeWrite(actor, target, parsed.data.active);
+  if (denial) return { error: denial };
+
+  await applyEmployeeChange(target, parsed.data);
   revalidatePath("/funcionarios");
   revalidatePath("/");
   revalidatePath("/contribuir");
@@ -72,13 +125,16 @@ export async function setEmployeeActive(
   id: string,
   active: boolean,
 ): Promise<EmployeeActionState> {
-  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+  const actor = await currentWriter();
+  if (!actor) return { error: SIGN_IN_REQUIRED };
 
-  const db = getDb();
-  const [current] = await db.select().from(employees).where(eq(employees.id, id));
-  if (!current) return { error: "Funcionário não encontrado" };
+  const target = await findEmployee(id);
+  if (!target) return { error: EMPLOYEE_NOT_FOUND };
 
-  await db.update(employees).set({ active }).where(eq(employees.id, id));
+  const denial = await denyEmployeeWrite(actor, target, active);
+  if (denial) return { error: denial };
+
+  await applyEmployeeChange(target, { active });
   revalidatePath("/funcionarios");
   revalidatePath("/");
   revalidatePath("/contribuir");

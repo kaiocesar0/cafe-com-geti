@@ -6,16 +6,16 @@
 
 **Blocked by:** 03: Escrita só com sessão
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Admin promove funcionário ativo (username + senha ≥ 8); inativo não promove; não cria admin geral direto
-- [ ] Admin não edita, inativa nem rebaixa outro admin ou admin geral
-- [ ] Admin altera o próprio nome e preferência; não altera o próprio ativo, perfil nem username
-- [ ] Admin geral altera nome, preferência e ativo de outro admin ou admin geral
-- [ ] Admin geral rebaixa outro admin ou admin geral (apaga username, hash e sessões)
-- [ ] Admin geral promove admin a admin geral sem mexer em username nem senha
-- [ ] Admin geral troca senha de outro sem a atual e mata todas as sessões dessa pessoa
-- [ ] Ninguém rebaixa nem inativa a si mesmo; último admin geral ativo não é rebaixado nem inativado
-- [ ] Inativar admin/admin geral apaga sessões e bloqueia login; reativar entra com senha antiga sem sessão antiga
-- [ ] Ação autenticada fora da matriz devolve “Sem permissão” e o banco não muda
-- [ ] Perfil não tira da fila nem muda preferência por si só
+- [x] Admin promove funcionário ativo (username + senha ≥ 8); inativo não promove; não cria admin geral direto
+- [x] Admin não edita, inativa nem rebaixa outro admin ou admin geral
+- [x] Admin altera o próprio nome e preferência; não altera o próprio ativo, perfil nem username
+- [x] Admin geral altera nome, preferência e ativo de outro admin ou admin geral
+- [x] Admin geral rebaixa outro admin ou admin geral (apaga username, hash e sessões)
+- [x] Admin geral promove admin a admin geral sem mexer em username nem senha
+- [x] Admin geral troca senha de outro sem a atual e mata todas as sessões dessa pessoa
+- [x] Ninguém rebaixa nem inativa a si mesmo; último admin geral ativo não é rebaixado nem inativado
+- [x] Inativar admin/admin geral apaga sessões e bloqueia login; reativar entra com senha antiga sem sessão antiga
+- [x] Ação autenticada fora da matriz devolve “Sem permissão” e o banco não muda
+- [x] Perfil não tira da fila nem muda preferência por si só
