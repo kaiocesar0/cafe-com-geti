@@ -1,4 +1,6 @@
 import { eq } from "drizzle-orm";
+import { createFirstAdminGeral } from "@/actions/accounts";
+import { login } from "@/actions/auth";
 import { createEmployee, listEmployees } from "@/actions/employees";
 import { createItem, listItems } from "@/actions/items";
 import { createContribution } from "@/actions/contributions";
@@ -59,6 +61,26 @@ export async function hire(input: {
   const result = await createEmployee({}, employeeForm(input));
   if (result.error) throw new Error(result.error);
   return mustEmployee(input.name);
+}
+
+export async function hireAdminGeral(input: {
+  name: string;
+  preference?: Preference;
+  username: string;
+  password: string;
+}) {
+  const result = await createFirstAdminGeral({
+    preference: "coffee",
+    ...input,
+  });
+  if (result.error) throw new Error(result.error);
+  return mustEmployee(input.name);
+}
+
+export async function signIn(input: { username: string; password: string }) {
+  const result = await login(input);
+  if (result.error) throw new Error(result.error);
+  return result.session!;
 }
 
 export async function stockItem(input: {

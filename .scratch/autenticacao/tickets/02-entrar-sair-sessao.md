@@ -6,12 +6,12 @@
 
 **Blocked by:** 01: Perfil no funcionário e primeira conta
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Login certo cria sessão no banco e cookie `httpOnly` com token opaco
-- [ ] Senha errada, username ausente e conta inativa devolvem “credenciais inválidas”
-- [ ] Username ausente não cria linha de tentativa no banco
-- [ ] **Sair** apaga só a sessão daquele pote de cookies
-- [ ] Sessão vence 14 dias após o último request que a valida; relógio avançado dispara o vencimento
-- [ ] Cookie é `httpOnly`, `Secure`, `SameSite=Lax`
-- [ ] Harness de teste substitui cookie do Next por pote em memória e oferece relógio avançável
+- [x] Login certo cria sessão no banco e cookie `httpOnly` com token opaco
+- [x] Senha errada, username ausente e conta inativa devolvem “credenciais inválidas”
+- [x] Username ausente não cria linha de tentativa no banco
+- [x] **Sair** apaga só a sessão daquele pote de cookies
+- [x] Sessão vence 14 dias após o último request que a valida; relógio avançado dispara o vencimento
+- [x] Cookie é `httpOnly`, `Secure`, `SameSite=Lax`
+- [x] Harness de teste substitui cookie do Next por pote em memória e oferece relógio avançável
