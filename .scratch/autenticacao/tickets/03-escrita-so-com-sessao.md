@@ -6,10 +6,10 @@
 
 **Blocked by:** 02: Entrar, sair e sessão
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Sem sessão, listagens funcionam; listagem pública de funcionário não expõe username, perfil nem hash
-- [ ] Sem sessão, criar/editar/excluir item e funcionário, contribuir, editar/excluir contribuição, contagem e −1/+1 são recusados e o banco não muda
-- [ ] Com sessão de admin ou admin geral, as escritas acima passam
-- [ ] Casos existentes da suíte abrem sessão de admin pelo harness e continuam passando
-- [ ] Leitura de username/perfil só na listagem autenticada de admin ou admin geral
+- [x] Sem sessão, listagens funcionam; listagem pública de funcionário não expõe username, perfil nem hash
+- [x] Sem sessão, criar/editar/excluir item e funcionário, contribuir, editar/excluir contribuição, contagem e −1/+1 são recusados e o banco não muda
+- [x] Com sessão de admin ou admin geral, as escritas acima passam
+- [x] Casos existentes da suíte abrem sessão de admin pelo harness e continuam passando
+- [x] Leitura de username/perfil só na listagem autenticada de admin ou admin geral

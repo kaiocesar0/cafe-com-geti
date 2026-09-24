@@ -1,10 +1,10 @@
 import { expect, it, vi } from "vitest";
 import { adjustItemStock, listItems, updateItem } from "@/actions/items";
 import { notifyLowStock } from "@/lib/notify";
-import { hire, itemForm, stockItem } from "@/test/fixtures";
+import { hire, hireAdmin, itemForm, stockItem } from "@/test/fixtures";
 
 async function shelf(name: string, stock: number) {
-  await hire({ name: "Maria", preference: "coffee" });
+  await hireAdmin({ name: "Maria", preference: "coffee" });
   return stockItem({ name, kind: "coffee", stock });
 }
 
@@ -39,7 +39,7 @@ it("2→0, 3→1 e 5→0 mandam a mensagem com o próximo da vez, sem POST", asy
 });
 
 it("avisa quando não há ninguém na fila", async () => {
-  await hire({ name: "Ana", preference: "milk" });
+  await hireAdmin({ name: "Ana", preference: "milk" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 2 });
 
   await adjustItemStock(cafe.id, -2);

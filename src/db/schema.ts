@@ -63,7 +63,11 @@ export const contributions = pgTable("contributions", {
 });
 
 export type Employee = typeof employees.$inferSelect;
-export type PublicEmployee = Omit<Employee, "passwordHash">;
+export type PublicEmployee = Pick<
+  Employee,
+  "id" | "name" | "preference" | "active" | "createdAt"
+>;
+export type AccountEmployee = PublicEmployee & Pick<Employee, "role" | "username">;
 export type Item = typeof items.$inferSelect;
 export type Contribution = typeof contributions.$inferSelect;
 export type Session = typeof sessions.$inferSelect;

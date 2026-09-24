@@ -6,6 +6,8 @@ import { getDb } from "@/db";
 import { contributions, employees, items } from "@/db/schema";
 import { parseDateInSaoPaulo, todayInSaoPaulo } from "@/lib/timezone";
 import { maybeNotifyStockCrossed } from "@/lib/stock-service";
+import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
+import { currentWriter } from "@/lib/authorization";
 import { z } from "zod";
 
 const contributionSchema = z.object({
@@ -25,6 +27,8 @@ export async function createContribution(
   _prev: ContributionActionState,
   formData: FormData,
 ): Promise<ContributionActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const kind = formData.get("kind");
   const affectsStock = kind !== "past";
 
@@ -115,6 +119,8 @@ export async function listContributions(filters?: {
 export async function deleteContribution(
   id: string,
 ): Promise<ContributionActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const db = getDb();
   const [row] = await db
     .select({
@@ -158,6 +164,8 @@ export async function updateContribution(
   _prev: ContributionActionState,
   formData: FormData,
 ): Promise<ContributionActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const parsed = contributionSchema.safeParse({
     employeeId: formData.get("employeeId"),
     itemId: formData.get("itemId"),
