@@ -6,12 +6,12 @@
 
 **Blocked by:** 04: Trava de login no navegador; 05: Trocar minha senha; 06: Matriz de perfis
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Botão **Admin** no header (desktop e mobile) abre diálogo de login na página atual
-- [ ] Logado: header mostra username e **Sair**; clique no username abre troca de senha (atual + nova)
-- [ ] Sem sessão: controles de escrita somem; Contribuir mostra texto apontando **Admin**
-- [ ] Com sessão: escritas reaparecem; contribuir pré-seleciona o logado
-- [ ] Lista pública de funcionários: só nome, preferência e ativo
-- [ ] Username, perfil e ações de promover/rebaixar/trocar senha de outro só para quem a matriz permite
-- [ ] Menu e as cinco rotas permanecem iguais
+- [x] Botão **Admin** no header (desktop e mobile) abre diálogo de login na página atual
+- [x] Logado: header mostra username e **Sair**; clique no username abre troca de senha (atual + nova)
+- [x] Sem sessão: controles de escrita somem; Contribuir mostra texto apontando **Admin**
+- [x] Com sessão: escritas reaparecem; contribuir pré-seleciona o logado
+- [x] Lista pública de funcionários: só nome, preferência e ativo
+- [x] Username, perfil e ações de promover/rebaixar/trocar senha de outro só para quem a matriz permite
+- [x] Menu e as cinco rotas permanecem iguais

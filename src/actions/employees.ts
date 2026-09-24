@@ -11,14 +11,8 @@ import {
   type PublicEmployee,
 } from "@/db/schema";
 import { NO_PERMISSION, SIGN_IN_REQUIRED } from "@/lib/auth-messages";
-import {
-  canEditProfile,
-  canSetActive,
-  currentWriter,
-  findEmployee,
-  isLastActiveAdminGeral,
-  type MatrixTarget,
-} from "@/lib/authorization";
+import { currentWriter, findEmployee, isLastActiveAdminGeral } from "@/lib/authorization";
+import { canEditProfile, canSetActive, type MatrixTarget } from "@/lib/role-matrix";
 import { deleteAllSessionsOf } from "@/lib/session-service";
 import { z } from "zod";
 

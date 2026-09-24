@@ -10,6 +10,10 @@ import {
   PlusCircle,
   Users,
 } from "lucide-react";
+import {
+  AdminSessionMenu,
+  type HeaderSession,
+} from "@/components/admin-session-menu";
 import { MobileNavDrawer } from "@/components/mobile-nav-drawer";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,7 +27,7 @@ const links = [
   { href: "/itens", label: "Itens", icon: Package },
 ] as const;
 
-export function AppHeader() {
+export function AppHeader({ session }: { session: HeaderSession | null }) {
   const currentPath = usePathname();
   const isMobile = useIsMobile();
   const showMobileMenu = isMobile !== false;
@@ -43,6 +47,7 @@ export function AppHeader() {
 
         {showMobileMenu ? (
           <div className="ml-auto flex items-center gap-2">
+            <AdminSessionMenu session={session} />
             <ThemeToggle className="shrink-0 border-white/25 bg-white/10 text-white hover:bg-white/20" />
             <MobileNavDrawer links={links} />
           </div>
@@ -72,7 +77,10 @@ export function AppHeader() {
               </div>
             </nav>
 
-            <ThemeToggle className="shrink-0 border-white/25 bg-white/10 text-white hover:bg-white/20" />
+            <div className="flex shrink-0 items-center gap-2">
+              <AdminSessionMenu session={session} />
+              <ThemeToggle className="shrink-0 border-white/25 bg-white/10 text-white hover:bg-white/20" />
+            </div>
           </>
         )}
       </div>

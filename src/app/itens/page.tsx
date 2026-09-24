@@ -1,10 +1,12 @@
 import { listItems } from "@/actions/items";
 import { ItemsManager } from "@/components/items-manager";
 import { PageHeader } from "@/components/page-header";
+import { currentWriter } from "@/lib/authorization";
 
 export const dynamic = "force-dynamic";
 
 export default async function ItensPage() {
+  const canWrite = (await currentWriter()) !== null;
   const items = await listItems();
 
   return (
@@ -13,7 +15,7 @@ export default async function ItensPage() {
         title="Itens"
         description="Cadastro e contagem física de estoque"
       />
-      <ItemsManager items={items} />
+      <ItemsManager items={items} canWrite={canWrite} />
     </div>
   );
 }

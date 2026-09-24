@@ -29,6 +29,7 @@ const semaphoreLabels = {
 export function DashboardItemCard({
   item,
   nextPerson,
+  canWrite,
 }: {
   item: {
     id: string;
@@ -38,6 +39,7 @@ export function DashboardItemCard({
     stock: number;
   };
   nextPerson: string | null;
+  canWrite: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const semaphore = stockSemaphore(item.stock);
@@ -89,30 +91,32 @@ export function DashboardItemCard({
         </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={pending}
-          onClick={() => handleDelta(-1)}
-        >
-          −1
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={pending}
-          onClick={() => handleDelta(1)}
-        >
-          +1
-        </Button>
-        <Link
-          href={`/contribuir?itemId=${item.id}`}
-          className={cn(buttonVariants({ size: "sm" }))}
-        >
-          Contribuir
-        </Link>
-      </div>
+      {canWrite ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => handleDelta(-1)}
+          >
+            −1
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => handleDelta(1)}
+          >
+            +1
+          </Button>
+          <Link
+            href={`/contribuir?itemId=${item.id}`}
+            className={cn(buttonVariants({ size: "sm" }))}
+          >
+            Contribuir
+          </Link>
+        </div>
+      ) : null}
     </article>
   );
 }

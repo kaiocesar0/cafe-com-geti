@@ -86,12 +86,20 @@ function ItemForm({ item, onDone }: { item?: Item; onDone?: () => void }) {
   );
 }
 
-export function ItemsManager({ items }: { items: Item[] }) {
+export function ItemsManager({
+  items,
+  canWrite,
+}: {
+  items: Item[];
+  canWrite: boolean;
+}) {
   return (
     <div className="space-y-6">
-      <SectionPanel title="Novo item">
-        <ItemForm />
-      </SectionPanel>
+      {canWrite ? (
+        <SectionPanel title="Novo item">
+          <ItemForm />
+        </SectionPanel>
+      ) : null}
 
       <SectionPanel
         title="Cadastrados"
@@ -104,7 +112,7 @@ export function ItemsManager({ items }: { items: Item[] }) {
               <TableHead>Nome</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Estoque</TableHead>
-              <TableHead />
+              {canWrite ? <TableHead /> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -115,16 +123,18 @@ export function ItemsManager({ items }: { items: Item[] }) {
                 <TableCell>
                   {item.stock} {item.unitLabel}
                 </TableCell>
-                <TableCell>
-                  <details>
-                    <summary className="cursor-pointer text-sm text-primary">
-                      Editar
-                    </summary>
-                    <div className="mt-3 min-w-64">
-                      <ItemForm item={item} />
-                    </div>
-                  </details>
-                </TableCell>
+                {canWrite ? (
+                  <TableCell>
+                    <details>
+                      <summary className="cursor-pointer text-sm text-primary">
+                        Editar
+                      </summary>
+                      <div className="mt-3 min-w-64">
+                        <ItemForm item={item} />
+                      </div>
+                    </details>
+                  </TableCell>
+                ) : null}
               </TableRow>
             ))}
           </TableBody>

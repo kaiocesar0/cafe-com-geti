@@ -19,10 +19,12 @@ export function ContributionForm({
   employees,
   items,
   defaultItemId,
+  defaultEmployeeId,
 }: {
   employees: PublicEmployee[];
   items: Item[];
   defaultItemId?: string;
+  defaultEmployeeId?: string;
 }) {
   const [state, formAction, pending] = useActionState(
     createContribution,
@@ -48,7 +50,11 @@ export function ContributionForm({
 
       <div className="space-y-2">
         <Label htmlFor="employeeId">Funcionário</Label>
-        <FormSelect name="employeeId" required defaultValue="">
+        <FormSelect
+          name="employeeId"
+          required
+          defaultValue={defaultEmployeeId ?? ""}
+        >
           <option value="" disabled>
             Selecione
           </option>

@@ -5,15 +5,13 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { employees, type Preference } from "@/db/schema";
 import { NO_PERMISSION, SIGN_IN_REQUIRED } from "@/lib/auth-messages";
+import { currentWriter, findEmployee, isLastActiveAdminGeral } from "@/lib/authorization";
 import {
+  canDemoteToFuncionario,
   canPromoteToAdmin,
+  canPromoteToAdminGeral,
   canResetPassword,
-  currentWriter,
-  findEmployee,
-  isAdminGeral,
-  isLastActiveAdminGeral,
-  isSelf,
-} from "@/lib/authorization";
+} from "@/lib/role-matrix";
 import { hashPassword, MIN_PASSWORD_LENGTH, PASSWORD_ERROR } from "@/lib/password";
 import { deleteAllSessionsOf } from "@/lib/session-service";
 import { parseUsername } from "@/lib/username";
@@ -108,10 +106,9 @@ export async function promoteToAdmin(input: {
 export async function promoteToAdminGeral(employeeId: string): Promise<AccountActionState> {
   const actor = await currentWriter();
   if (!actor) return { error: SIGN_IN_REQUIRED };
-  if (!isAdminGeral(actor)) return { error: NO_PERMISSION };
 
   const target = await findEmployee(employeeId);
-  if (target?.role !== "admin") return { error: NO_PERMISSION };
+  if (!target || !canPromoteToAdminGeral(actor, target)) return { error: NO_PERMISSION };
 
   await getDb()
     .update(employees)
@@ -126,12 +123,10 @@ export async function promoteToAdminGeral(employeeId: string): Promise<AccountAc
 export async function demoteToFuncionario(employeeId: string): Promise<AccountActionState> {
   const actor = await currentWriter();
   if (!actor) return { error: SIGN_IN_REQUIRED };
-  if (!isAdminGeral(actor)) return { error: NO_PERMISSION };
 
   const target = await findEmployee(employeeId);
-  if (!target || target.role === "funcionario") return { error: NO_PERMISSION };
+  if (!target || !canDemoteToFuncionario(actor, target)) return { error: NO_PERMISSION };
   if (await isLastActiveAdminGeral(target)) return { error: NO_PERMISSION };
-  if (isSelf(actor, target)) return { error: NO_PERMISSION };
 
   const db = getDb();
   await db.batch([

@@ -104,10 +104,12 @@ export function HistoryManager({
   contributions,
   employees,
   items,
+  canWrite,
 }: {
   contributions: ContributionRow[];
   employees: PublicEmployee[];
   items: Item[];
+  canWrite: boolean;
 }) {
   const [employeeFilter, setEmployeeFilter] = useState("all");
   const [itemFilter, setItemFilter] = useState("all");
@@ -183,7 +185,7 @@ export function HistoryManager({
             <TableHead>Item</TableHead>
             <TableHead>Qtd</TableHead>
             <TableHead>Tipo</TableHead>
-            <TableHead />
+            {canWrite ? <TableHead /> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -196,28 +198,30 @@ export function HistoryManager({
               <TableCell>
                 {row.affectsStock ? "Vigente" : "Passada"}
               </TableCell>
-              <TableCell className="space-x-2">
-                <details>
-                  <summary className="cursor-pointer text-sm text-primary">
-                    Editar
-                  </summary>
-                  <div className="mt-3 min-w-64">
-                    <EditContributionForm
-                      row={row}
-                      employees={employees}
-                      items={items}
-                    />
-                  </div>
-                </details>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() => handleDelete(row.id)}
-                >
-                  Excluir
-                </Button>
-              </TableCell>
+              {canWrite ? (
+                <TableCell className="space-x-2">
+                  <details>
+                    <summary className="cursor-pointer text-sm text-primary">
+                      Editar
+                    </summary>
+                    <div className="mt-3 min-w-64">
+                      <EditContributionForm
+                        row={row}
+                        employees={employees}
+                        items={items}
+                      />
+                    </div>
+                  </details>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={pending}
+                    onClick={() => handleDelete(row.id)}
+                  >
+                    Excluir
+                  </Button>
+                </TableCell>
+              ) : null}
             </TableRow>
           ))}
         </TableBody>

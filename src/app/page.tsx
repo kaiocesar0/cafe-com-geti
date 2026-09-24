@@ -5,12 +5,14 @@ import { DashboardItemCard } from "@/components/dashboard-item-card";
 import { DashboardKpis } from "@/components/dashboard-kpis";
 import { PageHeader } from "@/components/page-header";
 import { SectionPanel } from "@/components/section-panel";
+import { currentWriter } from "@/lib/authorization";
 import { getContributionSummariesForItem } from "@/lib/stock-service";
 import { pickNextInQueue, type RotationEmployee } from "@/lib/rotation";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const canWrite = (await currentWriter()) !== null;
   const [items, employees] = await Promise.all([listItems(), listEmployees()]);
 
   const cards = await Promise.all(
@@ -67,6 +69,7 @@ export default async function DashboardPage() {
                 key={item.id}
                 item={item}
                 nextPerson={nextPerson}
+                canWrite={canWrite}
               />
             ))}
           </div>
