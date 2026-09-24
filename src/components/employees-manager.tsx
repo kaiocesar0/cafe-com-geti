@@ -8,7 +8,7 @@ import {
   updateEmployee,
   type EmployeeActionState,
 } from "@/actions/employees";
-import type { Employee } from "@/db/schema";
+import type { PublicEmployee } from "@/db/schema";
 import { preferenceLabels } from "@/lib/labels";
 import { formatDateTimeSaoPaulo } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ function EmployeeForm({
   employee,
   onDone,
 }: {
-  employee?: Employee;
+  employee?: PublicEmployee;
   onDone?: () => void;
 }) {
   const action = employee
@@ -91,7 +91,7 @@ function EmployeeForm({
   );
 }
 
-export function EmployeesManager({ employees }: { employees: Employee[] }) {
+export function EmployeesManager({ employees }: { employees: PublicEmployee[] }) {
   return (
     <div className="space-y-6">
       <SectionPanel title="Novo funcionário">

@@ -8,11 +8,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] Schema tem perfil, username único (quando presente), hash de senha e tabela de sessões
-- [ ] Funcionários existentes migram para perfil funcionário, sem username e sem senha
-- [ ] Operação cria o primeiro admin geral com nome, preferência, username e senha; username já usado falha sem sobrescrever
-- [ ] Senha é Argon2id com pepper de ambiente; hash nunca vai ao cliente
-- [ ] Username normalizado (minúsculas, 3–32, letra no início, só letras/números/hífen)
-- [ ] Sem pepper, gravação de senha falha
-- [ ] Suíte define pepper no ambiente de teste e esvazia também as sessões a cada caso
-- [ ] Script local pede os dados no terminal e grava um admin geral; senha não vai para env da hospedagem
+- [x] Schema tem perfil, username único (quando presente), hash de senha e tabela de sessões
+- [x] Funcionários existentes migram para perfil funcionário, sem username e sem senha
+- [x] Operação cria o primeiro admin geral com nome, preferência, username e senha; username já usado falha sem sobrescrever
+- [x] Senha é Argon2id com pepper de ambiente; hash nunca vai ao cliente
+- [x] Username normalizado (minúsculas, 3–32, letra no início, só letras/números/hífen)
+- [x] Sem pepper, gravação de senha falha
+- [x] Suíte define pepper no ambiente de teste e esvazia também as sessões a cada caso
+- [x] Script local pede os dados no terminal e grava um admin geral; senha não vai para env da hospedagem

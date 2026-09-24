@@ -8,7 +8,7 @@ import {
   updateContribution,
   type ContributionActionState,
 } from "@/actions/contributions";
-import type { Employee, Item } from "@/db/schema";
+import type { Item, PublicEmployee } from "@/db/schema";
 import { formatDateSaoPaulo } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
@@ -40,7 +40,7 @@ function EditContributionForm({
   items,
 }: {
   row: ContributionRow;
-  employees: Employee[];
+  employees: PublicEmployee[];
   items: Item[];
 }) {
   const action = updateContribution.bind(null, row.id);
@@ -106,7 +106,7 @@ export function HistoryManager({
   items,
 }: {
   contributions: ContributionRow[];
-  employees: Employee[];
+  employees: PublicEmployee[];
   items: Item[];
 }) {
   const [employeeFilter, setEmployeeFilter] = useState("all");

@@ -80,5 +80,16 @@ export async function setEmployeeActive(
 
 export async function listEmployees() {
   const db = getDb();
-  return db.select().from(employees).orderBy(employees.createdAt);
+  return db
+    .select({
+      id: employees.id,
+      name: employees.name,
+      preference: employees.preference,
+      active: employees.active,
+      role: employees.role,
+      username: employees.username,
+      createdAt: employees.createdAt,
+    })
+    .from(employees)
+    .orderBy(employees.createdAt);
 }

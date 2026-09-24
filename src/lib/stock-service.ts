@@ -50,7 +50,15 @@ export async function getNextPersonNameForItem(
   kind: ItemKind,
 ): Promise<string | null> {
   const db = getDb();
-  const allEmployees = await db.select().from(employees);
+  const allEmployees = await db
+    .select({
+      id: employees.id,
+      name: employees.name,
+      preference: employees.preference,
+      active: employees.active,
+      createdAt: employees.createdAt,
+    })
+    .from(employees);
   const summaries = await getContributionSummariesForItem(itemId);
   const next = pickNextInQueue(
     allEmployees as RotationEmployee[],

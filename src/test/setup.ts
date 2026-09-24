@@ -2,6 +2,7 @@ import { beforeEach, vi } from "vitest";
 import { loadTestDatabaseUrl } from "./resolve-test-database-url";
 
 process.env.DATABASE_URL = loadTestDatabaseUrl();
+process.env.AUTH_PEPPER = "pepper-da-suite";
 delete process.env.GOOGLE_CHAT_WEBHOOK_URL;
 
 vi.mock("next/cache", () => ({

@@ -6,7 +6,7 @@ import {
   createContribution,
   type ContributionActionState,
 } from "@/actions/contributions";
-import type { Employee, Item } from "@/db/schema";
+import type { Item, PublicEmployee } from "@/db/schema";
 import { todayInSaoPaulo } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
@@ -20,7 +20,7 @@ export function ContributionForm({
   items,
   defaultItemId,
 }: {
-  employees: Employee[];
+  employees: PublicEmployee[];
   items: Item[];
   defaultItemId?: string;
 }) {
