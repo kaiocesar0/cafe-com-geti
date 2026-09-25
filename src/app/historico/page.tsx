@@ -4,10 +4,12 @@ import { listItems } from "@/actions/items";
 import { HistoryManager } from "@/components/history-manager";
 import { PageHeader } from "@/components/page-header";
 import { SectionPanel } from "@/components/section-panel";
+import { currentWriter } from "@/lib/authorization";
 
 export const dynamic = "force-dynamic";
 
 export default async function HistoricoPage() {
+  const canWrite = (await currentWriter()) !== null;
   const [contributions, employees, items] = await Promise.all([
     listContributions(),
     listEmployees(),
@@ -20,11 +22,15 @@ export default async function HistoricoPage() {
         title="Histórico"
         description="Contribuições vigentes e passadas"
       />
-      <SectionPanel title="Lançamentos" description="Filtre, edite ou exclua">
+      <SectionPanel
+        title="Lançamentos"
+        description={canWrite ? "Filtre, edite ou exclua" : "Filtre e consulte"}
+      >
         <HistoryManager
           contributions={contributions}
           employees={employees}
           items={items}
+          canWrite={canWrite}
         />
       </SectionPanel>
     </div>

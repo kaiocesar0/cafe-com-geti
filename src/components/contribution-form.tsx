@@ -6,7 +6,7 @@ import {
   createContribution,
   type ContributionActionState,
 } from "@/actions/contributions";
-import type { Employee, Item } from "@/db/schema";
+import type { Item, PublicEmployee } from "@/db/schema";
 import { todayInSaoPaulo } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
@@ -19,10 +19,12 @@ export function ContributionForm({
   employees,
   items,
   defaultItemId,
+  defaultEmployeeId,
 }: {
-  employees: Employee[];
+  employees: PublicEmployee[];
   items: Item[];
   defaultItemId?: string;
+  defaultEmployeeId?: string;
 }) {
   const [state, formAction, pending] = useActionState(
     createContribution,
@@ -48,7 +50,11 @@ export function ContributionForm({
 
       <div className="space-y-2">
         <Label htmlFor="employeeId">Funcionário</Label>
-        <FormSelect name="employeeId" required defaultValue="">
+        <FormSelect
+          name="employeeId"
+          required
+          defaultValue={defaultEmployeeId ?? ""}
+        >
           <option value="" disabled>
             Selecione
           </option>

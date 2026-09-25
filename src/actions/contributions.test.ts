@@ -9,12 +9,13 @@ import {
 import {
   contributionForm,
   hire,
+  hireAdmin,
   recordContribution,
   stockItem,
 } from "@/test/fixtures";
 
 it("contribuição vigente aumenta estoque e total; passada só o total", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 4 });
 
   await recordContribution({
@@ -39,7 +40,7 @@ it("contribuição vigente aumenta estoque e total; passada só o total", async 
 });
 
 it("funcionário fora da fila registra e a quantidade entra no total", async () => {
-  const ana = await hire({ name: "Ana", preference: "milk" });
+  const ana = await hireAdmin({ name: "Ana", preference: "milk" });
   const maria = await hire({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 4 });
 
@@ -56,7 +57,7 @@ it("funcionário fora da fila registra e a quantidade entra no total", async () 
 });
 
 it("excluir vigente desfaz o estoque e excluir passada não mexe na prateleira", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 7 });
 
   await recordContribution({
@@ -87,7 +88,7 @@ it("excluir vigente desfaz o estoque e excluir passada não mexe na prateleira",
 });
 
 it("recusa exclusão que deixaria o estoque negativo e mantém a contribuição", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 2 });
   await recordContribution({
     employeeId: maria.id,
@@ -106,7 +107,7 @@ it("recusa exclusão que deixaria o estoque negativo e mantém a contribuição"
 });
 
 it("não troca vigente por passada", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 4 });
   await recordContribution({
     employeeId: maria.id,
@@ -134,7 +135,7 @@ it("não troca vigente por passada", async () => {
 });
 
 it("não troca passada por vigente", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 4 });
   await recordContribution({
     employeeId: maria.id,
@@ -163,7 +164,7 @@ it("não troca passada por vigente", async () => {
 });
 
 it("trocar o item na edição vigente move a quantidade", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 4 });
   const filtro = await stockItem({ name: "Filtro", kind: "filter", stock: 1 });
   await recordContribution({
@@ -197,7 +198,7 @@ it("trocar o item na edição vigente move a quantidade", async () => {
 });
 
 it("recusa edição que deixaria o estoque negativo", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 2 });
   await recordContribution({
     employeeId: maria.id,

@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { contributions, items } from "@/db/schema";
 import { maybeNotifyStockCrossed } from "@/lib/stock-service";
+import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
+import { currentWriter } from "@/lib/authorization";
 import { z } from "zod";
 
 const itemSchema = z.object({
@@ -23,6 +25,8 @@ export async function createItem(
   _prev: ItemActionState,
   formData: FormData,
 ): Promise<ItemActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const parsed = itemSchema.safeParse({
     name: formData.get("name"),
     unitLabel: formData.get("unitLabel"),
@@ -46,6 +50,8 @@ export async function updateItem(
   _prev: ItemActionState,
   formData: FormData,
 ): Promise<ItemActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const parsed = itemSchema.safeParse({
     name: formData.get("name"),
     unitLabel: formData.get("unitLabel"),
@@ -80,6 +86,8 @@ export async function updateItem(
 }
 
 export async function deleteItem(id: string): Promise<ItemActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const db = getDb();
   const [current] = await db.select().from(items).where(eq(items.id, id));
   if (!current) return { error: "Item não encontrado" };
@@ -103,6 +111,8 @@ export async function adjustItemStock(
   id: string,
   delta: number,
 ): Promise<ItemActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const db = getDb();
   const [current] = await db.select().from(items).where(eq(items.id, id));
   if (!current) return { error: "Item não encontrado" };

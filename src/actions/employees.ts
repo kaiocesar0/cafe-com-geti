@@ -2,8 +2,18 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import type { SessionInfo } from "@/lib/current-session";
 import { getDb } from "@/db";
-import { employees } from "@/db/schema";
+import {
+  employees,
+  type AccountEmployee,
+  type Preference,
+  type PublicEmployee,
+} from "@/db/schema";
+import { NO_PERMISSION, SIGN_IN_REQUIRED } from "@/lib/auth-messages";
+import { currentWriter, findEmployee, isLastActiveAdminGeral } from "@/lib/authorization";
+import { canEditProfile, canSetActive, type MatrixTarget } from "@/lib/role-matrix";
+import { deleteAllSessionsOf } from "@/lib/session-service";
 import { z } from "zod";
 
 const employeeSchema = z.object({
@@ -17,10 +27,45 @@ export type EmployeeActionState = {
   success?: boolean;
 };
 
+const EMPLOYEE_NOT_FOUND = "Funcionário não encontrado";
+
+/**
+ * A matriz em uma passada: `null` libera a gravação, string é o motivo que volta para a tela.
+ * Perfil e username não saem daqui; quem mexe neles são as operações de promover e rebaixar.
+ */
+async function denyEmployeeWrite(
+  actor: SessionInfo,
+  target: MatrixTarget,
+  nextActive: boolean,
+): Promise<string | null> {
+  if (!canEditProfile(actor, target)) return NO_PERMISSION;
+  if (nextActive === target.active) return null;
+  if (!nextActive && (await isLastActiveAdminGeral(target))) return NO_PERMISSION;
+  if (!canSetActive(actor, target)) return NO_PERMISSION;
+  return null;
+}
+
+/** Quem perde o acesso perde junto o que tem aberto em qualquer navegador. */
+async function applyEmployeeChange(
+  target: MatrixTarget,
+  change: { name?: string; preference?: Preference; active: boolean },
+) {
+  const db = getDb();
+  const update = db.update(employees).set(change).where(eq(employees.id, target.id));
+
+  if (target.active && !change.active) {
+    await db.batch([update, deleteAllSessionsOf(db, target.id)]);
+    return;
+  }
+  await update;
+}
+
 export async function createEmployee(
   _prev: EmployeeActionState,
   formData: FormData,
 ): Promise<EmployeeActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
   const parsed = employeeSchema.safeParse({
     name: formData.get("name"),
     preference: formData.get("preference"),
@@ -43,6 +88,9 @@ export async function updateEmployee(
   _prev: EmployeeActionState,
   formData: FormData,
 ): Promise<EmployeeActionState> {
+  const actor = await currentWriter();
+  if (!actor) return { error: SIGN_IN_REQUIRED };
+
   const parsed = employeeSchema.safeParse({
     name: formData.get("name"),
     preference: formData.get("preference"),
@@ -53,8 +101,13 @@ export async function updateEmployee(
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   }
 
-  const db = getDb();
-  await db.update(employees).set(parsed.data).where(eq(employees.id, id));
+  const target = await findEmployee(id);
+  if (!target) return { error: EMPLOYEE_NOT_FOUND };
+
+  const denial = await denyEmployeeWrite(actor, target, parsed.data.active);
+  if (denial) return { error: denial };
+
+  await applyEmployeeChange(target, parsed.data);
   revalidatePath("/funcionarios");
   revalidatePath("/");
   revalidatePath("/contribuir");
@@ -66,11 +119,16 @@ export async function setEmployeeActive(
   id: string,
   active: boolean,
 ): Promise<EmployeeActionState> {
-  const db = getDb();
-  const [current] = await db.select().from(employees).where(eq(employees.id, id));
-  if (!current) return { error: "Funcionário não encontrado" };
+  const actor = await currentWriter();
+  if (!actor) return { error: SIGN_IN_REQUIRED };
 
-  await db.update(employees).set({ active }).where(eq(employees.id, id));
+  const target = await findEmployee(id);
+  if (!target) return { error: EMPLOYEE_NOT_FOUND };
+
+  const denial = await denyEmployeeWrite(actor, target, active);
+  if (denial) return { error: denial };
+
+  await applyEmployeeChange(target, { active });
   revalidatePath("/funcionarios");
   revalidatePath("/");
   revalidatePath("/contribuir");
@@ -78,7 +136,22 @@ export async function setEmployeeActive(
   return { success: true };
 }
 
-export async function listEmployees() {
+const publicColumns = {
+  id: employees.id,
+  name: employees.name,
+  preference: employees.preference,
+  active: employees.active,
+  createdAt: employees.createdAt,
+};
+
+/** Visitante recebe só o público; username e perfil só com sessão de admin ou admin geral. */
+export async function listEmployees(): Promise<PublicEmployee[] | AccountEmployee[]> {
   const db = getDb();
-  return db.select().from(employees).orderBy(employees.createdAt);
+  if (!(await currentWriter())) {
+    return db.select(publicColumns).from(employees).orderBy(employees.createdAt);
+  }
+  return db
+    .select({ ...publicColumns, role: employees.role, username: employees.username })
+    .from(employees)
+    .orderBy(employees.createdAt);
 }

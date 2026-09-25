@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { AppHeader } from "@/components/app-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { currentWriter } from "@/lib/authorization";
 import "./globals.css";
 
 const inter = Inter({
@@ -19,11 +20,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await currentWriter();
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
@@ -35,7 +38,7 @@ export default function RootLayout({
           enableSystem={false}
           storageKey="cafe-com-geti-theme"
         >
-          <AppHeader />
+          <AppHeader session={session && { username: session.username }} />
           <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-10 lg:px-6">
             {children}
           </main>

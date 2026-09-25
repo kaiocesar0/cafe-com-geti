@@ -8,10 +8,16 @@ import {
 import { listContributions } from "@/actions/contributions";
 import { notifyLowStock } from "@/lib/notify";
 import { getContributionSummariesForItem } from "@/lib/stock-service";
-import { hire, itemForm, recordContribution, stockItem } from "@/test/fixtures";
+import {
+  hireAdmin,
+  itemForm,
+  openAdminSession,
+  recordContribution,
+  stockItem,
+} from "@/test/fixtures";
 
 it("contagem define o estoque e não altera o total; cruzar 1 alerta", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 5 });
   await recordContribution({
     employeeId: maria.id,
@@ -37,6 +43,7 @@ it("contagem define o estoque e não altera o total; cruzar 1 alerta", async () 
 });
 
 it("+1 sobe a prateleira e −1 que ficaria negativo é recusado", async () => {
+  await openAdminSession();
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 0 });
 
   expect(await adjustItemStock(cafe.id, 1)).toEqual({ success: true });
@@ -49,7 +56,7 @@ it("+1 sobe a prateleira e −1 que ficaria negativo é recusado", async () => {
 });
 
 it("−1 que cruza 1 alerta e não mexe no total", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 2 });
   await recordContribution({
     employeeId: maria.id,
@@ -68,6 +75,7 @@ it("−1 que cruza 1 alerta e não mexe no total", async () => {
 });
 
 it("criar e editar item persiste nome, unidade, tipo e estoque", async () => {
+  await openAdminSession();
   const cafe = await stockItem({
     name: "Café",
     kind: "coffee",
@@ -99,7 +107,7 @@ it("criar e editar item persiste nome, unidade, tipo e estoque", async () => {
 });
 
 it("apagar item apaga as contribuições e não alerta", async () => {
-  const maria = await hire({ name: "Maria", preference: "coffee" });
+  const maria = await hireAdmin({ name: "Maria", preference: "coffee" });
   const cafe = await stockItem({ name: "Café", kind: "coffee", stock: 5 });
   await recordContribution({
     employeeId: maria.id,
