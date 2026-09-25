@@ -43,6 +43,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { FormDialog } from "@/components/form-dialog";
 import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -203,10 +205,12 @@ function AccountActions({
   employee,
   actor,
   everyone,
+  onDone,
 }: {
   employee: AccountEmployee;
   actor: MatrixActor;
   everyone: AccountEmployee[];
+  onDone?: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -224,6 +228,7 @@ function AccountActions({
   function afterSuccess(message: string) {
     toast.success(message);
     router.refresh();
+    onDone?.();
   }
 
   return (
@@ -290,22 +295,25 @@ function AccountActions({
       ) : null}
 
       {showDemote ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={pending}
-          onClick={() => {
-            if (!confirm(`Rebaixar ${employee.name} a funcionário?`)) return;
-            startTransition(async () => {
-              const result = await demoteToFuncionario(employee.id);
-              if (result.error) toast.error(result.error);
-              else afterSuccess("Rebaixado a funcionário");
-            });
+        <ConfirmDialog
+          trigger={
+            <Button type="button" size="sm" variant="outline" disabled={pending}>
+              Rebaixar
+            </Button>
+          }
+          title="Rebaixar a funcionário"
+          description={`Rebaixar ${employee.name} a funcionário? Username, senha e sessões dessa pessoa serão apagados.`}
+          confirmLabel="Rebaixar"
+          onConfirm={async () => {
+            const result = await demoteToFuncionario(employee.id);
+            if (result.error) {
+              toast.error(result.error);
+              return false;
+            }
+            afterSuccess("Rebaixado a funcionário");
+            return true;
           }}
-        >
-          Rebaixar
-        </Button>
+        />
       ) : null}
 
       {showReset ? (
@@ -408,22 +416,36 @@ export function EmployeesManager({
                         <TableCell>{roleLabels[account.role]}</TableCell>
                         <TableCell>
                           {canEdit ? (
-                            <details>
-                              <summary className="cursor-pointer text-sm text-primary">
-                                Editar
-                              </summary>
-                              <div className="mt-3 min-w-64">
-                                <EmployeeForm
-                                  employee={employee}
-                                  allowActive={allowActive}
-                                />
-                                <AccountActions
-                                  employee={account}
-                                  actor={session}
-                                  everyone={accounts!}
-                                />
-                              </div>
-                            </details>
+                            <FormDialog
+                              trigger={
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  Editar
+                                </Button>
+                              }
+                              title="Editar funcionário"
+                              description={employee.name}
+                              className="sm:max-w-lg"
+                            >
+                              {({ close }) => (
+                                <div className="space-y-4">
+                                  <EmployeeForm
+                                    employee={employee}
+                                    allowActive={allowActive}
+                                    onDone={close}
+                                  />
+                                  <AccountActions
+                                    employee={account}
+                                    actor={session}
+                                    everyone={accounts!}
+                                    onDone={close}
+                                  />
+                                </div>
+                              )}
+                            </FormDialog>
                           ) : accounts ? (
                             <AccountActions
                               employee={account}
