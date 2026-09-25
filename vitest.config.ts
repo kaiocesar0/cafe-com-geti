@@ -10,6 +10,9 @@ export default defineConfig({
     fileParallelism: false,
     maxWorkers: 1,
     sequence: { concurrent: false },
+    // Argon2id + Neon remoto no CI passam de 5s em casos com vários hireAdmin/login.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
   resolve: {
     alias: {
