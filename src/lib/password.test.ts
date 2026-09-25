@@ -16,6 +16,13 @@ it("gera hash Argon2id que confere a senha certa e recusa a errada", async () =>
   expect(await verifyPassword(hash, "cafe-fraco-2024")).toBe(false);
 });
 
+it("no Vitest usa custo baixo de memória e tempo, gravados no próprio hash", async () => {
+  expect(process.env.VITEST).toBeTruthy();
+  const hash = await hashPassword("cafe-forte-2024");
+  // Formato PHC: $argon2id$v=19$m=8,t=1,p=1$...
+  expect(hash).toMatch(/\$m=8,t=1,p=1\$/);
+});
+
 it("usa salt próprio por hash", async () => {
   const first = await hashPassword("cafe-forte-2024");
   const second = await hashPassword("cafe-forte-2024");
