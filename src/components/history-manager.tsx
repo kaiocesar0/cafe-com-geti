@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   deleteContribution,
@@ -10,6 +10,8 @@ import {
 } from "@/actions/contributions";
 import type { Item, PublicEmployee } from "@/db/schema";
 import { formatDateSaoPaulo } from "@/lib/timezone";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { FormDialog } from "@/components/form-dialog";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
@@ -38,20 +40,28 @@ function EditContributionForm({
   row,
   employees,
   items,
+  onDone,
 }: {
   row: ContributionRow;
   employees: PublicEmployee[];
   items: Item[];
+  onDone?: () => void;
 }) {
   const action = updateContribution.bind(null, row.id);
   const [state, formAction, pending] = useActionState(action, initialState);
 
   useEffect(() => {
     if (state.error) toast.error(state.error);
-    if (state.success) toast.success("Contribuição atualizada");
-  }, [state]);
+    if (state.success) {
+      toast.success("Contribuição atualizada");
+      onDone?.();
+    }
+  }, [state, onDone]);
 
-  const dateValue = row.occurredAt.toISOString().slice(0, 10);
+  const dateValue =
+    row.occurredAt instanceof Date
+      ? row.occurredAt.toISOString().slice(0, 10)
+      : String(row.occurredAt).slice(0, 10);
 
   return (
     <form action={formAction} className="space-y-3">
@@ -93,7 +103,7 @@ function EditContributionForm({
         <Label>Data</Label>
         <Input name="occurredAt" type="date" defaultValue={dateValue} />
       </div>
-      <Button type="submit" size="sm" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         Salvar edição
       </Button>
     </form>
@@ -113,7 +123,6 @@ export function HistoryManager({
 }) {
   const [employeeFilter, setEmployeeFilter] = useState("all");
   const [itemFilter, setItemFilter] = useState("all");
-  const [pending, startTransition] = useTransition();
 
   const filtered = contributions.filter((row) => {
     if (employeeFilter !== "all" && row.employeeId !== employeeFilter) {
@@ -124,15 +133,6 @@ export function HistoryManager({
     }
     return true;
   });
-
-  function handleDelete(id: string) {
-    if (!confirm("Excluir esta contribuição?")) return;
-    startTransition(async () => {
-      const result = await deleteContribution(id);
-      if (result.error) toast.error(result.error);
-      else toast.success("Contribuição excluída");
-    });
-  }
 
   return (
     <div className="space-y-4">
@@ -199,27 +199,46 @@ export function HistoryManager({
                 {row.affectsStock ? "Vigente" : "Passada"}
               </TableCell>
               {canWrite ? (
-                <TableCell className="space-x-2">
-                  <details>
-                    <summary className="cursor-pointer text-sm text-primary">
-                      Editar
-                    </summary>
-                    <div className="mt-3 min-w-64">
-                      <EditContributionForm
-                        row={row}
-                        employees={employees}
-                        items={items}
-                      />
-                    </div>
-                  </details>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    disabled={pending}
-                    onClick={() => handleDelete(row.id)}
-                  >
-                    Excluir
-                  </Button>
+                <TableCell>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <FormDialog
+                      trigger={
+                        <Button type="button" variant="outline" size="sm">
+                          Editar
+                        </Button>
+                      }
+                      title="Editar contribuição"
+                      description={`${row.employeeName} · ${row.itemName}`}
+                    >
+                      {({ close }) => (
+                        <EditContributionForm
+                          row={row}
+                          employees={employees}
+                          items={items}
+                          onDone={close}
+                        />
+                      )}
+                    </FormDialog>
+                    <ConfirmDialog
+                      trigger={
+                        <Button type="button" variant="destructive" size="sm">
+                          Excluir
+                        </Button>
+                      }
+                      title="Excluir contribuição"
+                      description={`Excluir o registro de ${row.employeeName} (${row.quantity}× ${row.itemName})? Esta ação não pode ser desfeita.`}
+                      confirmLabel="Excluir"
+                      onConfirm={async () => {
+                        const result = await deleteContribution(row.id);
+                        if (result.error) {
+                          toast.error(result.error);
+                          return false;
+                        }
+                        toast.success("Contribuição excluída");
+                        return true;
+                      }}
+                    />
+                  </div>
                 </TableCell>
               ) : null}
             </TableRow>

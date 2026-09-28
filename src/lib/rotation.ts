@@ -31,36 +31,49 @@ export function isInQueue(
   return employee.preference === "coffee" || employee.preference === "both";
 }
 
+export interface RankedQueueEntry {
+  employee: RotationEmployee;
+  totalQuantity: number;
+  lastContributedAt: Date | string | null;
+}
+
+export function rankQueue(
+  employees: RotationEmployee[],
+  kind: ItemKind,
+  summaries: ContributionSummary[],
+): RankedQueueEntry[] {
+  const ranked = employees
+    .filter((e) => isInQueue(e, kind))
+    .map((employee) => {
+      const summary = summaries.find((s) => s.employeeId === employee.id);
+      return {
+        employee,
+        totalQuantity: summary?.totalQuantity ?? 0,
+        lastContributedAt: summary?.lastContributedAt ?? null,
+      };
+    });
+
+  ranked.sort((a, b) => {
+    if (a.totalQuantity !== b.totalQuantity) {
+      return a.totalQuantity - b.totalQuantity;
+    }
+    if (a.lastContributedAt === null && b.lastContributedAt === null) {
+      return toEpochMs(a.employee.createdAt) - toEpochMs(b.employee.createdAt);
+    }
+    if (a.lastContributedAt === null) return -1;
+    if (b.lastContributedAt === null) return 1;
+    return toEpochMs(a.lastContributedAt) - toEpochMs(b.lastContributedAt);
+  });
+
+  return ranked;
+}
+
 export function pickNextInQueue(
   employees: RotationEmployee[],
   kind: ItemKind,
   summaries: ContributionSummary[],
 ): RotationEmployee | null {
-  const queue = employees.filter((e) => isInQueue(e, kind));
-  if (queue.length === 0) return null;
-
-  const ranked = queue.map((employee) => {
-    const summary = summaries.find((s) => s.employeeId === employee.id);
-    return {
-      employee,
-      total: summary?.totalQuantity ?? 0,
-      lastAt: summary?.lastContributedAt ?? null,
-    };
-  });
-
-  const minTotal = Math.min(...ranked.map((r) => r.total));
-  const candidates = ranked.filter((r) => r.total === minTotal);
-
-  candidates.sort((a, b) => {
-    if (a.lastAt === null && b.lastAt === null) {
-      return toEpochMs(a.employee.createdAt) - toEpochMs(b.employee.createdAt);
-    }
-    if (a.lastAt === null) return -1;
-    if (b.lastAt === null) return 1;
-    return toEpochMs(a.lastAt) - toEpochMs(b.lastAt);
-  });
-
-  return candidates[0]?.employee ?? null;
+  return rankQueue(employees, kind, summaries)[0]?.employee ?? null;
 }
 
 export function stockSemaphore(stock: number): "ok" | "warning" | "critical" {

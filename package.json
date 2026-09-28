@@ -14,6 +14,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "auth:create-first-admin": "tsx scripts/create-first-admin.ts",
+    "db:reset-seed": "tsx scripts/reset-dev-db.ts",
     "neon:deploy": "neon deploy",
     "neon:env": "neon env pull"
   },
