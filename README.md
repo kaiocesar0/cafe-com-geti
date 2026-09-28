@@ -32,7 +32,7 @@ Na **Vercel**: em *Settings → Environment Variables*, `DATABASE_URL` da branch
 2. `npx neon link --project-id crimson-hill-72285250 --branch hml -y`
 3. `npx neon deploy` (atualiza `.env.local`)
 4. `AUTH_PEPPER` no `.env.local` (`openssl rand -base64 32`)
-5. Opcional: `GOOGLE_CHAT_WEBHOOK_URL` no `.env.local`
+5. Opcional: `GOOGLE_CHAT_WEBHOOK_URL` e `APP_URL` no `.env.local`
 6. Aplique o schema:
 
 ```bash
@@ -73,5 +73,6 @@ npm run typecheck
 | `DATABASE_URL` | Sim | Connection string do Neon |
 | `AUTH_PEPPER` | Sim | Segredo misturado na senha antes do hash; sem ele, gravar e conferir senha falha |
 | `GOOGLE_CHAT_WEBHOOK_URL` | Não | Webhook do espaço do Google Chat |
+| `APP_URL` | Não | URL pública do app no fim dos avisos do Chat (ex.: `https://cafe-com-geti.vercel.app`) |
 
 Spec e decisões: `docs/spec.md`, `CONTEXT.md`, `docs/adr/`.

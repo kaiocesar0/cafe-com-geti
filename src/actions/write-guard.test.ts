@@ -22,7 +22,7 @@ import { logout } from "@/actions/auth";
 import { getDb } from "@/db";
 import { contributions, employees, items, sessions } from "@/db/schema";
 import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
-import { notifyLowStock } from "@/lib/notify";
+import { notifyStockAlert } from "@/lib/notify";
 import { newBrowser } from "@/test/cookie-jar";
 import {
   contributionForm,
@@ -145,7 +145,7 @@ it("com sessão de admin, a listagem traz username e perfil, sem hash", async ()
 it("sem sessão, toda escrita é recusada e o banco não muda", async () => {
   const pantry = await stockedPantry();
   newBrowser();
-  vi.mocked(notifyLowStock).mockClear();
+  vi.mocked(notifyStockAlert).mockClear();
   const before = await pantrySnapshot();
 
   for (const [name, write] of Object.entries(writesOn(pantry))) {
@@ -153,7 +153,7 @@ it("sem sessão, toda escrita é recusada e o banco não muda", async () => {
   }
 
   expect(await pantrySnapshot()).toEqual(before);
-  expect(notifyLowStock).not.toHaveBeenCalled();
+  expect(notifyStockAlert).not.toHaveBeenCalled();
 });
 
 it("cookie de sessão encerrada não grava", async () => {

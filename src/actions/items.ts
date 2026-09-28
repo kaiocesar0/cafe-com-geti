@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { contributions, items } from "@/db/schema";
-import { maybeNotifyStockCrossed } from "@/lib/stock-service";
+import { maybeNotifyStockChange } from "@/lib/stock-service";
 import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
 import { currentWriter } from "@/lib/authorization";
 import { z } from "zod";
@@ -78,7 +78,7 @@ export async function updateItem(
     })
     .where(eq(items.id, id));
 
-  await maybeNotifyStockCrossed(id, previousStock, parsed.data.stock);
+  await maybeNotifyStockChange(id, previousStock, parsed.data.stock);
 
   revalidatePath("/itens");
   revalidatePath("/");
@@ -124,7 +124,7 @@ export async function adjustItemStock(
 
   const previousStock = current.stock;
   await db.update(items).set({ stock: newStock }).where(eq(items.id, id));
-  await maybeNotifyStockCrossed(id, previousStock, newStock);
+  await maybeNotifyStockChange(id, previousStock, newStock);
 
   revalidatePath("/");
   revalidatePath("/itens");

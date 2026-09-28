@@ -7,9 +7,10 @@ import {
   type ItemKind,
 } from "@/db/schema";
 import {
-  buildLowStockMessage,
-  notifyLowStock,
-  shouldNotifyStockCrossedOne,
+  buildStockAlertMessage,
+  normalizeAppUrl,
+  notifyStockAlert,
+  stockAlertKind,
 } from "@/lib/notify";
 import {
   pickNextInQueue,
@@ -68,19 +69,40 @@ export async function getNextPersonNameForItem(
   return next?.name ?? null;
 }
 
-export async function maybeNotifyStockCrossed(
+export async function maybeNotifyStockChange(
   itemId: string,
   previousStock: number,
   newStock: number,
 ): Promise<void> {
-  if (!shouldNotifyStockCrossedOne(previousStock, newStock)) return;
+  const kind = stockAlertKind(previousStock, newStock);
+  if (!kind) return;
 
   const db = getDb();
   const [item] = await db.select().from(items).where(eq(items.id, itemId));
   if (!item) return;
 
-  const nextPerson = await getNextPersonNameForItem(itemId, item.kind);
-  await notifyLowStock(
-    buildLowStockMessage(item.name, newStock, nextPerson),
-  );
+  const nextPerson =
+    kind === "restocked"
+      ? null
+      : await getNextPersonNameForItem(itemId, item.kind);
+
+  const appUrl = normalizeAppUrl(process.env.APP_URL);
+  if (!appUrl) {
+    console.warn("APP_URL não configurada; alerta sem link");
+  }
+
+  try {
+    await notifyStockAlert(
+      buildStockAlertMessage({
+        kind,
+        itemName: item.name,
+        newStock,
+        unitLabel: item.unitLabel,
+        nextPerson,
+        appUrl,
+      }),
+    );
+  } catch (error) {
+    console.error("Erro ao enviar alerta Google Chat:", error);
+  }
 }
