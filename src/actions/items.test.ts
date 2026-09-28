@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import {
   adjustItemStock,
   deleteItem,
@@ -6,7 +6,7 @@ import {
   updateItem,
 } from "@/actions/items";
 import { listContributions } from "@/actions/contributions";
-import { notifyLowStock } from "@/lib/notify";
+import { notifyStockAlert } from "@/lib/notify";
 import { getContributionSummariesForItem } from "@/lib/stock-service";
 import {
   hireAdmin,
@@ -37,8 +37,8 @@ it("contagem define o estoque e não altera o total; cruzar 1 alerta", async () 
   expect(await getContributionSummariesForItem(cafe.id)).toEqual([
     expect.objectContaining({ totalQuantity: 3 }),
   ]);
-  expect(notifyLowStock).toHaveBeenCalledWith(
-    "⚠️ Estoque baixo: *Café* (1 restante)\nPróximo da vez: *Maria*",
+  expect(notifyStockAlert).toHaveBeenCalledWith(
+    "⚠️ Estoque baixo: *Café* (1 pacote)\nPróximo da vez: *Maria*",
   );
 });
 
@@ -48,11 +48,15 @@ it("+1 sobe a prateleira e −1 que ficaria negativo é recusado", async () => {
 
   expect(await adjustItemStock(cafe.id, 1)).toEqual({ success: true });
   expect((await listItems())[0]?.stock).toBe(1);
+  expect(notifyStockAlert).toHaveBeenCalledWith(
+    "*Café*: estoque agora é 1 pacote",
+  );
 
+  vi.mocked(notifyStockAlert).mockClear();
   const refused = await adjustItemStock(cafe.id, -2);
   expect(refused.error).toMatch(/negativo/);
   expect((await listItems())[0]?.stock).toBe(1);
-  expect(notifyLowStock).not.toHaveBeenCalled();
+  expect(notifyStockAlert).not.toHaveBeenCalled();
 });
 
 it("−1 que cruza 1 alerta e não mexe no total", async () => {
@@ -71,7 +75,7 @@ it("−1 que cruza 1 alerta e não mexe no total", async () => {
   expect(await getContributionSummariesForItem(cafe.id)).toEqual([
     expect.objectContaining({ totalQuantity: 4 }),
   ]);
-  expect(notifyLowStock).toHaveBeenCalledOnce();
+  expect(notifyStockAlert).toHaveBeenCalledOnce();
 });
 
 it("criar e editar item persiste nome, unidade, tipo e estoque", async () => {
@@ -103,7 +107,7 @@ it("criar e editar item persiste nome, unidade, tipo e estoque", async () => {
       stock: 3,
     }),
   ]);
-  expect(notifyLowStock).not.toHaveBeenCalled();
+  expect(notifyStockAlert).not.toHaveBeenCalled();
 });
 
 it("apagar item apaga as contribuições e não alerta", async () => {
@@ -120,5 +124,5 @@ it("apagar item apaga as contribuições e não alerta", async () => {
   expect(result).toEqual({ success: true });
   expect(await listItems()).toEqual([]);
   expect(await listContributions()).toEqual([]);
-  expect(notifyLowStock).not.toHaveBeenCalled();
+  expect(notifyStockAlert).not.toHaveBeenCalled();
 });

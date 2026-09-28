@@ -10,7 +10,7 @@ Na copa, café, leite e filtro acabam e só então alguém percebe. Não dá par
 
 ## Solution
 
-Um app interno (link, sem login) onde qualquer um cadastra pessoas e itens, registra o que foi trazido, vê o estoque e **quem é o próximo da vez por item**, e o **espaço do Google Chat** recebe aviso quando o estoque **cruza 1 para baixo**.
+Um app interno (link, sem login) onde qualquer um cadastra pessoas e itens, registra o que foi trazido, vê o estoque e **quem é o próximo da vez por item**, e o **espaço do Google Chat** recebe aviso quando o estoque chega a **1**, chega a **0** ou **sai de 0/1 para cima**.
 
 ## User Stories
 
@@ -28,9 +28,9 @@ Um app interno (link, sem login) onde qualquer um cadastra pessoas e itens, regi
 12. Como quem toma café, quero entrar na fila de café **e** de filtro.
 13. Como time, quero que empate no total vá para quem está **devendo há mais tempo**, e se ninguém nunca trouxe, para a **ordem de cadastro**.
 14. Como time, quero editar ou excluir um lançamento errado, para o total e o estoque (se vigente) voltarem ao correto.
-15. Como time no Google Chat, quero uma mensagem no **grupo** quando o estoque cruzar 1 para baixo, nomeando o próximo da vez — e **nada** quando alguém só abre o app.
+15. Como time no Google Chat, quero mensagens no **grupo** ao chegar em 1, ao acabar (0) e ao repor saindo de 0/1 — e **nada** quando alguém só abre o app.
 16. Como time, quero tema claro por padrão e escuro opcional, com as cores do DS **sem** logo/nome da DPE.
-17. Como quem configura, quero webhook e banco só em variáveis de ambiente na Vercel.
+17. Como quem configura, quero webhook, `APP_URL` e banco só em variáveis de ambiente na Vercel.
 
 ## Regras de domínio (não negociar na implementação)
 
@@ -62,14 +62,16 @@ Não mudar vigente ↔ passada na edição.
 
 ### Alerta Google Chat
 
-Somente no servidor, após commit da mudança de estoque:
+Somente no servidor, após commit da mudança de estoque, por item (before/after):
 
-`estoqueAnterior > 1` **e** `estoqueNovo <= 1`
+- chegou em **1** (`antes > 1`, `depois === 1`) → estoque baixo + próximo da vez;
+- chegou em **0** (`antes > 0`, `depois === 0`) → acabou + próximo da vez (inclui 5→0 e 1→0);
+- saiu de **0** ou **1** para cima → item + quantidade nova (sem próximo da vez);
+- ambos acima de 1, ou estoque igual → silêncio.
 
-Dispara: 2→0, 3→1, 5→0.  
-Não dispara: abrir app, 1→0, 5→2, contribuição passada (estoque igual).
+Não dispara: abrir app, contribuição passada, criar item, excluir item.
 
-Texto (pt-BR): item, quantidade nova, nome do próximo da vez (ou “ninguém na fila”). Webhook em env; nunca no cliente.
+Texto (pt-BR): unidade do cadastro (`+ s` se quantidade ≠ 1); link `APP_URL` no fim quando configurada. Webhook em env; nunca no cliente.
 
 ### Tempo
 
@@ -92,13 +94,13 @@ Identidade: tokens ADR-0013, **sem** marca DPE. Nome do produto: Café com Geti.
 - Postgres **Neon**; acesso só no servidor (Server Actions).
 - ORM: **Drizzle** (ADR-0022) + driver serverless Neon; schema em TypeScript.
 - Módulos lógicos: `employees`, `items`, `contributions`, `stock` (ajustes + aplicação de vigente), `rotation` (puro: próximo da vez), `notify` (Chat).
-- `rotation` e a condição de alerta são funções puras, testáveis sem HTTP.
+- `rotation` e a condição de alerta (`stockAlertKind`) são funções puras, testáveis sem HTTP.
 - Schema (conceitual):
   - `employees`: id, name, preference (`coffee` \| `milk` \| `both`), active, createdAt
   - `items`: id, name, unitLabel, kind (`coffee` \| `milk` \| `filter`), stock (int ≥ 0)
   - `contributions`: id, employeeId, itemId, quantity, occurredAt, affectsStock (boolean; vigente = true)
   - estoque **não** é derivado: coluna em `items`, mutada só nas regras acima
-- Webhook: `GOOGLE_CHAT_WEBHOOK_URL`. Falha de rede do Chat **não** desfaz o save; logar erro (MVP: não refila).
+- Webhook: `GOOGLE_CHAT_WEBHOOK_URL`. Link opcional: `APP_URL`. Falha de rede do Chat **não** desfaz o save; logar erro (MVP: não refila).
 - Sem cron para alerta.
 - Sem auth; não indexar (`robots.txt` / `X-Robots-Tag`) se trivial.
 
@@ -108,13 +110,13 @@ Testar **comportamento** das regras, não componentes shadcn.
 
 A suíte é Vitest, no mesmo `npm test`, em série.
 
-Regras puras: `rotation` (próximo da vez) e `shouldNotifyStockCrossedOne`.
+Regras puras: `rotation` (próximo da vez) e `stockAlertKind` / builders de mensagem.
 
 Server Actions e `stock-service` rodam contra uma branch Neon persistente, só com schema, chamada `test`, distinta de `hml` e `production`. Ela não expira. A URL fica em `.env.test`. Cada `npm test` aplica o migrate nessa URL. Cada caso começa com contribuições, itens e funcionários vazios.
 
 Duas travas: a suíte lê `DATABASE_URL` só de `.env.test`. Sem essa variável, o comando falha antes do migrate e antes do primeiro delete. Se a URL for igual à de `.env` ou `.env.local`, falha do mesmo jeito.
 
-`revalidatePath` é espião no-op, então a action não precisa de um request do Next. `notifyLowStock` é espião: o teste confere a mensagem e nenhum POST sai ao espaço do Google Chat. Se o espião falha, o estoque novo permanece.
+`revalidatePath` é espião no-op, então a action não precisa de um request do Next. `notifyStockAlert` é espião: o teste confere a mensagem e nenhum POST sai ao espaço do Google Chat. Se o envio falha, o estoque novo permanece e a action não quebra.
 
 Casos:
 
@@ -130,8 +132,8 @@ Casos:
 - Exclusão ou edição que deixaria estoque negativo é recusada e a linha fica.
 - Edição não troca vigente por passada. Trocar o item numa vigente move a quantidade.
 - Contagem (`updateItem`) define o estoque absoluto e não mexe no total. −1/+1 (`adjustItemStock`) idem; −1 que ficaria negativo é recusado.
-- 2→0, 3→1 e 5→0 alertam com item, quantidade nova e próximo da vez (ou “ninguém na fila”). 1→0, 5→2 e estoque igual não alertam. Abrir o app não alerta.
-- Contagem ou delta que cruza 1 alerta. Apagar item apaga as contribuições e não alerta.
+- 3→1 alerta estoque baixo; 2→0, 5→0 e 1→0 alertam acabou; 0→4 e 1→4 alertam reposição; 5→2 e estoque igual não alertam. Abrir o app não alerta. Criar item (mesmo com 0/1) e apagar item não alertam.
+- Contagem ou delta que dispara a regra alerta. Apagar item apaga as contribuições e não alerta.
 - Criar e editar item persiste nome, unidade, tipo e estoque. Criar funcionário grava e a listagem lê de volta.
 
 ## Out of Scope

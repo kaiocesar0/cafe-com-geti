@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { shouldNotifyStockCrossedOne } from "./notify";
+import {
+  buildStockAlertMessage,
+  formatUnitLabel,
+  normalizeAppUrl,
+  stockAlertKind,
+} from "./notify";
 import { isInQueue, pickNextInQueue, rankQueue } from "./rotation";
 
 const maria = {
@@ -162,16 +167,95 @@ describe("pickNextInQueue", () => {
   });
 });
 
-describe("shouldNotifyStockCrossedOne", () => {
-  it("notifica quando cruza 1 para baixo", () => {
-    expect(shouldNotifyStockCrossedOne(2, 0)).toBe(true);
-    expect(shouldNotifyStockCrossedOne(3, 1)).toBe(true);
-    expect(shouldNotifyStockCrossedOne(5, 0)).toBe(true);
+describe("stockAlertKind", () => {
+  it("estoque baixo ao chegar em 1 vindo de cima", () => {
+    expect(stockAlertKind(3, 1)).toBe("low");
+    expect(stockAlertKind(2, 1)).toBe("low");
   });
 
-  it("não notifica em outros casos", () => {
-    expect(shouldNotifyStockCrossedOne(1, 0)).toBe(false);
-    expect(shouldNotifyStockCrossedOne(5, 2)).toBe(false);
-    expect(shouldNotifyStockCrossedOne(2, 2)).toBe(false);
+  it("acabou ao chegar em 0 (pulo ou 1→0)", () => {
+    expect(stockAlertKind(2, 0)).toBe("empty");
+    expect(stockAlertKind(5, 0)).toBe("empty");
+    expect(stockAlertKind(1, 0)).toBe("empty");
+  });
+
+  it("reposição ao sair de 0 ou 1 para cima", () => {
+    expect(stockAlertKind(0, 1)).toBe("restocked");
+    expect(stockAlertKind(0, 4)).toBe("restocked");
+    expect(stockAlertKind(1, 4)).toBe("restocked");
+  });
+
+  it("silêncio acima de 1 ou estoque igual", () => {
+    expect(stockAlertKind(5, 2)).toBe(null);
+    expect(stockAlertKind(3, 6)).toBe(null);
+    expect(stockAlertKind(2, 2)).toBe(null);
+    expect(stockAlertKind(0, 0)).toBe(null);
+    expect(stockAlertKind(1, 1)).toBe(null);
+  });
+});
+
+describe("formatUnitLabel", () => {
+  it("cola s quando a quantidade não é 1", () => {
+    expect(formatUnitLabel(1, "pacote")).toBe("pacote");
+    expect(formatUnitLabel(4, "pacote")).toBe("pacotes");
+    expect(formatUnitLabel(0, "pacote")).toBe("pacotes");
+  });
+});
+
+describe("normalizeAppUrl", () => {
+  it("remove barra final e trata vazio", () => {
+    expect(normalizeAppUrl("https://cafe-com-geti.vercel.app/")).toBe(
+      "https://cafe-com-geti.vercel.app",
+    );
+    expect(normalizeAppUrl("  https://x.app  ")).toBe("https://x.app");
+    expect(normalizeAppUrl(undefined)).toBe(null);
+    expect(normalizeAppUrl("")).toBe(null);
+  });
+});
+
+describe("buildStockAlertMessage", () => {
+  const appUrl = "https://cafe-com-geti.vercel.app";
+
+  it("estoque baixo com próximo e link", () => {
+    expect(
+      buildStockAlertMessage({
+        kind: "low",
+        itemName: "Café",
+        newStock: 1,
+        unitLabel: "pacote",
+        nextPerson: "Maria",
+        appUrl,
+      }),
+    ).toBe(
+      "⚠️ Estoque baixo: *Café* (1 pacote)\nPróximo da vez: *Maria*\nhttps://cafe-com-geti.vercel.app",
+    );
+  });
+
+  it("acabou sem próximo e sem link", () => {
+    expect(
+      buildStockAlertMessage({
+        kind: "empty",
+        itemName: "Café",
+        newStock: 0,
+        unitLabel: "pacote",
+        nextPerson: null,
+        appUrl: null,
+      }),
+    ).toBe("⚠️ Acabou: *Café*\nPróximo da vez: ninguém na fila");
+  });
+
+  it("reposição com plural e link, sem próximo", () => {
+    expect(
+      buildStockAlertMessage({
+        kind: "restocked",
+        itemName: "Café",
+        newStock: 4,
+        unitLabel: "pacote",
+        nextPerson: "Maria",
+        appUrl,
+      }),
+    ).toBe(
+      "*Café*: estoque agora é 4 pacotes\nhttps://cafe-com-geti.vercel.app",
+    );
   });
 });
