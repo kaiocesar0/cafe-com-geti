@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { shouldNotifyStockCrossedOne } from "./notify";
-import { isInQueue, pickNextInQueue } from "./rotation";
+import { isInQueue, pickNextInQueue, pickNextNInQueue } from "./rotation";
 
 const maria = {
   id: "1",
@@ -78,6 +78,18 @@ describe("pickNextInQueue", () => {
       { employeeId: "3", totalQuantity: 0, lastContributedAt: null },
     ]);
     expect(next?.name).toBe("Maria");
+  });
+});
+
+describe("pickNextNInQueue", () => {
+  it("lista os N próximos na ordem da fila", () => {
+    const next = pickNextNInQueue([maria, joao], "coffee", [], 2);
+    expect(next.map((e) => e.name)).toEqual(["João", "Maria"]);
+  });
+
+  it("para quando a fila acaba", () => {
+    const next = pickNextNInQueue([maria], "coffee", [], 3);
+    expect(next.map((e) => e.name)).toEqual(["Maria"]);
   });
 });
 

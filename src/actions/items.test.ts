@@ -38,7 +38,7 @@ it("contagem define o estoque e não altera o total; cruzar 1 alerta", async () 
     expect.objectContaining({ totalQuantity: 3 }),
   ]);
   expect(notifyLowStock).toHaveBeenCalledWith(
-    "⚠️ Estoque baixo: *Café* (1 restante)\nPróximo da vez: *Maria*",
+    "⚠️ Estoque baixo: Café (1 restante)\n🤑 Próximo da vez:\n1º Maria",
   );
 });
 

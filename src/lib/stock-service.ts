@@ -13,6 +13,7 @@ import {
 } from "@/lib/notify";
 import {
   pickNextInQueue,
+  pickNextNInQueue,
   type ContributionSummary,
   type RotationEmployee,
 } from "@/lib/rotation";
@@ -45,12 +46,9 @@ export async function getContributionSummariesForItem(
   }));
 }
 
-export async function getNextPersonNameForItem(
-  itemId: string,
-  kind: ItemKind,
-): Promise<string | null> {
+async function loadRotationEmployees(): Promise<RotationEmployee[]> {
   const db = getDb();
-  const allEmployees = await db
+  return (await db
     .select({
       id: employees.id,
       name: employees.name,
@@ -58,14 +56,29 @@ export async function getNextPersonNameForItem(
       active: employees.active,
       createdAt: employees.createdAt,
     })
-    .from(employees);
+    .from(employees)) as RotationEmployee[];
+}
+
+export async function getNextPersonNameForItem(
+  itemId: string,
+  kind: ItemKind,
+): Promise<string | null> {
+  const allEmployees = await loadRotationEmployees();
   const summaries = await getContributionSummariesForItem(itemId);
-  const next = pickNextInQueue(
-    allEmployees as RotationEmployee[],
-    kind,
-    summaries,
-  );
+  const next = pickNextInQueue(allEmployees, kind, summaries);
   return next?.name ?? null;
+}
+
+export async function getNextPersonNamesForItem(
+  itemId: string,
+  kind: ItemKind,
+  limit = 2,
+): Promise<string[]> {
+  const allEmployees = await loadRotationEmployees();
+  const summaries = await getContributionSummariesForItem(itemId);
+  return pickNextNInQueue(allEmployees, kind, summaries, limit).map(
+    (e) => e.name,
+  );
 }
 
 export async function maybeNotifyStockCrossed(
@@ -79,8 +92,8 @@ export async function maybeNotifyStockCrossed(
   const [item] = await db.select().from(items).where(eq(items.id, itemId));
   if (!item) return;
 
-  const nextPerson = await getNextPersonNameForItem(itemId, item.kind);
+  const nextPeople = await getNextPersonNamesForItem(itemId, item.kind, 2);
   await notifyLowStock(
-    buildLowStockMessage(item.name, newStock, nextPerson),
+    buildLowStockMessage(item.name, newStock, nextPeople),
   );
 }

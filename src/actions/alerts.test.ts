@@ -14,7 +14,7 @@ it("2→0, 3→1 e 5→0 mandam a mensagem com o próximo da vez, sem POST", asy
 
   await adjustItemStock(cafe.id, -2);
   expect(notifyLowStock).toHaveBeenCalledWith(
-    "⚠️ Estoque baixo: *Café* (0 restante)\nPróximo da vez: *Maria*",
+    "⚠️ Estoque baixo: Café (0 restante)\n🤑 Próximo da vez:\n1º Maria",
   );
 
   vi.mocked(notifyLowStock).mockClear();
@@ -22,14 +22,14 @@ it("2→0, 3→1 e 5→0 mandam a mensagem com o próximo da vez, sem POST", asy
   await hire({ name: "Ana", preference: "milk" });
   await adjustItemStock(leite.id, -2);
   expect(notifyLowStock).toHaveBeenCalledWith(
-    "⚠️ Estoque baixo: *Leite* (1 restante)\nPróximo da vez: *Ana*",
+    "⚠️ Estoque baixo: Leite (1 restante)\n🤑 Próximo da vez:\n1º Ana",
   );
 
   vi.mocked(notifyLowStock).mockClear();
   const filtro = await stockItem({ name: "Filtro", kind: "filter", stock: 5 });
   await adjustItemStock(filtro.id, -5);
   expect(notifyLowStock).toHaveBeenCalledWith(
-    "⚠️ Estoque baixo: *Filtro* (0 restante)\nPróximo da vez: *Maria*",
+    "⚠️ Estoque baixo: Filtro (0 restante)\n🤑 Próximo da vez:\n1º Maria",
   );
   const outsideNeon = fetchMock.mock.calls
     .map((call) => String(call[0]))
@@ -45,7 +45,7 @@ it("avisa quando não há ninguém na fila", async () => {
   await adjustItemStock(cafe.id, -2);
 
   expect(notifyLowStock).toHaveBeenCalledWith(
-    "⚠️ Estoque baixo: *Café* (0 restante)\nPróximo da vez: ninguém na fila",
+    "⚠️ Estoque baixo: Café (0 restante)\n🤑 Próximo da vez:\nninguém na fila",
   );
 });
 

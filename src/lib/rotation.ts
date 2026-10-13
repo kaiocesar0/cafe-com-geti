@@ -63,6 +63,25 @@ export function pickNextInQueue(
   return candidates[0]?.employee ?? null;
 }
 
+/** Próximos N da fila, na ordem em que seriam chamados (exclui quem já entrou na lista). */
+export function pickNextNInQueue(
+  employees: RotationEmployee[],
+  kind: ItemKind,
+  summaries: ContributionSummary[],
+  n: number,
+): RotationEmployee[] {
+  const remaining = [...employees];
+  const result: RotationEmployee[] = [];
+  for (let i = 0; i < n; i++) {
+    const next = pickNextInQueue(remaining, kind, summaries);
+    if (!next) break;
+    result.push(next);
+    const idx = remaining.findIndex((e) => e.id === next.id);
+    if (idx !== -1) remaining.splice(idx, 1);
+  }
+  return result;
+}
+
 export function stockSemaphore(stock: number): "ok" | "warning" | "critical" {
   if (stock > 1) return "ok";
   if (stock === 1) return "warning";

@@ -33,10 +33,20 @@ export async function notifyLowStock(message: string): Promise<void> {
 export function buildLowStockMessage(
   itemName: string,
   newStock: number,
-  nextPerson: string | null,
+  nextPerson: string | null | string[],
 ): string {
-  const nextLine = nextPerson
-    ? `Próximo da vez: *${nextPerson}*`
-    : "Próximo da vez: ninguém na fila";
-  return `⚠️ Estoque baixo: *${itemName}* (${newStock} restante)\n${nextLine}`;
+  const names = Array.isArray(nextPerson)
+    ? nextPerson
+    : nextPerson
+      ? [nextPerson]
+      : [];
+
+  const nextBlock =
+    names.length === 0
+      ? "🤑 Próximo da vez:\nninguém na fila"
+      : `🤑 Próximo da vez:\n${names
+          .map((name, i) => `${i + 1}º ${name}${i < names.length - 1 ? ";" : ""}`)
+          .join("\n")}`;
+
+  return `⚠️ Estoque baixo: ${itemName} (${newStock} restante)\n${nextBlock}`;
 }
