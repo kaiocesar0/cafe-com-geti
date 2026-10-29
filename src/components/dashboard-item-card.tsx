@@ -10,6 +10,7 @@ import { ItemKindIcon } from "@/lib/item-icons";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SendChatAlertButton } from "@/components/send-chat-alert-button";
 import type { ItemKind } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { stockSemaphore } from "@/lib/rotation";
@@ -115,6 +116,7 @@ export function DashboardItemCard({
           >
             Contribuir
           </Link>
+          <SendChatAlertButton itemId={item.id} itemName={item.name} />
         </div>
       ) : null}
     </article>

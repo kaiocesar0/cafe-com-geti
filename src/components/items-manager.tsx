@@ -14,6 +14,7 @@ import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SectionPanel } from "@/components/section-panel";
+import { SendChatAlertButton } from "@/components/send-chat-alert-button";
 import {
   Table,
   TableBody,
@@ -125,6 +126,9 @@ export function ItemsManager({
                 </TableCell>
                 {canWrite ? (
                   <TableCell>
+                    <div className="mb-2">
+                      <SendChatAlertButton itemId={item.id} itemName={item.name} />
+                    </div>
                     <details>
                       <summary className="cursor-pointer text-sm text-primary">
                         Editar
