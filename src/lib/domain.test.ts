@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldNotifyStockCrossedOne } from "./notify";
+import { chatAlertEnvironmentLabel, shouldNotifyStockCrossedOne } from "./notify";
 import { isInQueue, pickNextInQueue, pickNextNInQueue } from "./rotation";
 
 const maria = {
@@ -90,6 +90,15 @@ describe("pickNextNInQueue", () => {
   it("para quando a fila acaba", () => {
     const next = pickNextNInQueue([maria], "coffee", [], 3);
     expect(next.map((e) => e.name)).toEqual(["Maria"]);
+  });
+});
+
+describe("chatAlertEnvironmentLabel", () => {
+  it("nomeia produção, preview e local", () => {
+    expect(chatAlertEnvironmentLabel("production")).toBe("produção");
+    expect(chatAlertEnvironmentLabel("preview")).toBe("preview");
+    expect(chatAlertEnvironmentLabel(undefined)).toBe("local");
+    expect(chatAlertEnvironmentLabel("development")).toBe("local");
   });
 });
 

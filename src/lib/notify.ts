@@ -1,3 +1,11 @@
+export function chatAlertEnvironmentLabel(
+  vercelEnv: string | undefined,
+): "produção" | "preview" | "local" {
+  if (vercelEnv === "production") return "produção";
+  if (vercelEnv === "preview") return "preview";
+  return "local";
+}
+
 export function shouldNotifyStockCrossedOne(
   previous: number,
   next: number,
@@ -5,11 +13,13 @@ export function shouldNotifyStockCrossedOne(
   return previous > 1 && next <= 1;
 }
 
-export async function notifyLowStock(message: string): Promise<void> {
+export async function notifyLowStock(
+  message: string,
+): Promise<{ error?: string }> {
   const url = process.env.GOOGLE_CHAT_WEBHOOK_URL;
   if (!url) {
     console.warn("GOOGLE_CHAT_WEBHOOK_URL não configurada; alerta ignorado");
-    return;
+    return { error: "Webhook do Google Chat não configurado neste ambiente" };
   }
 
   try {
@@ -24,9 +34,12 @@ export async function notifyLowStock(message: string): Promise<void> {
         response.status,
         await response.text(),
       );
+      return { error: "Falha ao enviar o aviso ao Google Chat" };
     }
+    return {};
   } catch (error) {
     console.error("Erro ao enviar alerta Google Chat:", error);
+    return { error: "Falha ao enviar o aviso ao Google Chat" };
   }
 }
 
