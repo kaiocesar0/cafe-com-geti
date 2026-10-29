@@ -1,3 +1,11 @@
+export function chatAlertEnvironmentLabel(
+  vercelEnv: string | undefined,
+): "produção" | "preview" | "local" {
+  if (vercelEnv === "production") return "produção";
+  if (vercelEnv === "preview") return "preview";
+  return "local";
+}
+
 export type StockAlertKind = "low" | "empty" | "restocked";
 
 export function stockAlertKind(
@@ -62,11 +70,32 @@ export function buildStockAlertMessage(input: {
   );
 }
 
-export async function notifyStockAlert(message: string): Promise<void> {
+export function buildLowStockMessage(
+  itemName: string,
+  newStock: number,
+  nextPerson: string | null | string[],
+): string {
+  const names = Array.isArray(nextPerson)
+    ? nextPerson
+    : nextPerson
+      ? [nextPerson]
+      : [];
+
+  const nextBlock =
+    names.length === 0
+      ? "🤑 Próximo da vez:\nninguém na fila"
+      : `🤑 Próximo da vez:\n${names
+          .map((name, i) => `${i + 1}º ${name}${i < names.length - 1 ? ";" : ""}`)
+          .join("\n")}`;
+
+  return `⚠️ Estoque baixo: ${itemName} (${newStock} restante)\n${nextBlock}`;
+}
+
+async function postChatMessage(message: string): Promise<{ error?: string }> {
   const url = process.env.GOOGLE_CHAT_WEBHOOK_URL;
   if (!url) {
     console.warn("GOOGLE_CHAT_WEBHOOK_URL não configurada; alerta ignorado");
-    return;
+    return { error: "Webhook do Google Chat não configurado neste ambiente" };
   }
 
   try {
@@ -81,8 +110,21 @@ export async function notifyStockAlert(message: string): Promise<void> {
         response.status,
         await response.text(),
       );
+      return { error: "Falha ao enviar o aviso ao Google Chat" };
     }
+    return {};
   } catch (error) {
     console.error("Erro ao enviar alerta Google Chat:", error);
+    return { error: "Falha ao enviar o aviso ao Google Chat" };
   }
+}
+
+export async function notifyStockAlert(message: string): Promise<void> {
+  await postChatMessage(message);
+}
+
+export async function notifyLowStock(
+  message: string,
+): Promise<{ error?: string }> {
+  return postChatMessage(message);
 }

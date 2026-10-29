@@ -15,6 +15,7 @@ vi.mock("@/lib/notify", async (importOriginal) => {
   return {
     ...actual,
     notifyStockAlert: vi.fn(async () => {}),
+    notifyLowStock: vi.fn(async () => ({})),
   };
 });
 

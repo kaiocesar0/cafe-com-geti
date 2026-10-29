@@ -53,6 +53,29 @@ npm run auth:create-first-admin
 O script pede nome, preferência, username e senha, e grava um admin geral.
 Username já usado falha sem sobrescrever.
 
+## Alerta manual no Google Chat
+
+Lê **estoque e próximos da vez no banco** da env escolhida e envia para o
+webhook dessa mesma env. Só POST quando você roda sem `--dry-run`.
+
+Modelo das variáveis: `.env.example`. Para prod:
+
+```bash
+cp .env.example .env.prod
+# preencha DATABASE_URL e GOOGLE_CHAT_WEBHOOK_URL de produção
+```
+
+```bash
+# preview (não envia) — lê estoque + 2 próximos do banco de prod
+npm run chat:notify -- --env prod --item Leite --dry-run
+
+# envia de verdade
+npm run chat:notify -- --env prod --item Leite
+```
+
+`--env prod` → `.env.prod`; `--env hml` → `.env.hml`; omitido → `.env.local`.
+Não commite `.env.prod`.
+
 ## Banco (Drizzle)
 
 - `npm run db:push` — aplica schema no Neon (desenvolvimento)

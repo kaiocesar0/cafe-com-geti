@@ -15,6 +15,7 @@ import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SectionPanel } from "@/components/section-panel";
+import { SendChatAlertButton } from "@/components/send-chat-alert-button";
 import {
   Table,
   TableBody,
@@ -126,19 +127,25 @@ export function ItemsManager({
                   </TableCell>
                   {canWrite ? (
                     <TableCell>
-                      <FormDialog
-                        trigger={
-                          <Button type="button" variant="outline" size="sm">
-                            Editar
-                          </Button>
-                        }
-                        title="Editar item"
-                        description={item.name}
-                      >
-                        {({ close }) => (
-                          <ItemForm item={item} onDone={close} />
-                        )}
-                      </FormDialog>
+                      <div className="flex flex-wrap gap-2">
+                        <SendChatAlertButton
+                          itemId={item.id}
+                          itemName={item.name}
+                        />
+                        <FormDialog
+                          trigger={
+                            <Button type="button" variant="outline" size="sm">
+                              Editar
+                            </Button>
+                          }
+                          title="Editar item"
+                          description={item.name}
+                        >
+                          {({ close }) => (
+                            <ItemForm item={item} onDone={close} />
+                          )}
+                        </FormDialog>
+                      </div>
                     </TableCell>
                   ) : null}
                 </TableRow>

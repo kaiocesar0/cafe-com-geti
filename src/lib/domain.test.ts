@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   buildStockAlertMessage,
+  chatAlertEnvironmentLabel,
   formatUnitLabel,
   normalizeAppUrl,
   stockAlertKind,
 } from "./notify";
-import { isInQueue, pickNextInQueue, rankQueue } from "./rotation";
+import { isInQueue, pickNextInQueue, pickNextNInQueue, rankQueue } from "./rotation";
 
 const maria = {
   id: "1",
@@ -164,6 +165,27 @@ describe("pickNextInQueue", () => {
       { employeeId: "3", totalQuantity: 0, lastContributedAt: null },
     ]);
     expect(next?.name).toBe("Maria");
+  });
+});
+
+describe("pickNextNInQueue", () => {
+  it("lista os N próximos na ordem da fila", () => {
+    const next = pickNextNInQueue([maria, joao], "coffee", [], 2);
+    expect(next.map((e) => e.name)).toEqual(["João", "Maria"]);
+  });
+
+  it("para quando a fila acaba", () => {
+    const next = pickNextNInQueue([maria], "coffee", [], 3);
+    expect(next.map((e) => e.name)).toEqual(["Maria"]);
+  });
+});
+
+describe("chatAlertEnvironmentLabel", () => {
+  it("nomeia produção, preview e local", () => {
+    expect(chatAlertEnvironmentLabel("production")).toBe("produção");
+    expect(chatAlertEnvironmentLabel("preview")).toBe("preview");
+    expect(chatAlertEnvironmentLabel(undefined)).toBe("local");
+    expect(chatAlertEnvironmentLabel("development")).toBe("local");
   });
 });
 

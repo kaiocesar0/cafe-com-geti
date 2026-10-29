@@ -4,7 +4,15 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { contributions, items } from "@/db/schema";
-import { maybeNotifyStockChange } from "@/lib/stock-service";
+import {
+  buildLowStockMessage,
+  chatAlertEnvironmentLabel,
+  notifyLowStock,
+} from "@/lib/notify";
+import {
+  getNextPersonNamesForItem,
+  maybeNotifyStockChange,
+} from "@/lib/stock-service";
 import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
 import { currentWriter } from "@/lib/authorization";
 import { z } from "zod";
@@ -20,6 +28,23 @@ export type ItemActionState = {
   error?: string;
   success?: boolean;
 };
+
+export type ChatAlertPreview = {
+  error?: string;
+  message?: string;
+  environment?: "produção" | "preview" | "local";
+};
+
+async function composeItemChatAlert(
+  id: string,
+): Promise<{ error: string } | { message: string }> {
+  const db = getDb();
+  const [item] = await db.select().from(items).where(eq(items.id, id));
+  if (!item) return { error: "Item não encontrado" };
+
+  const nextPeople = await getNextPersonNamesForItem(item.id, item.kind, 2);
+  return { message: buildLowStockMessage(item.name, item.stock, nextPeople) };
+}
 
 export async function createItem(
   _prev: ItemActionState,
@@ -99,6 +124,38 @@ export async function deleteItem(id: string): Promise<ItemActionState> {
   revalidatePath("/");
   revalidatePath("/contribuir");
   revalidatePath("/historico");
+  return { success: true };
+}
+
+export async function previewItemChatAlert(id: string): Promise<ChatAlertPreview> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+
+  const composed = await composeItemChatAlert(id);
+  if ("error" in composed) return composed;
+
+  return {
+    message: composed.message,
+    environment: chatAlertEnvironmentLabel(process.env.VERCEL_ENV),
+  };
+}
+
+export async function sendItemChatAlert(id: string): Promise<ItemActionState> {
+  if (!(await currentWriter())) return { error: SIGN_IN_REQUIRED };
+  if (!process.env.GOOGLE_CHAT_WEBHOOK_URL) {
+    return { error: "Webhook do Google Chat não configurado neste ambiente" };
+  }
+
+  const composed = await composeItemChatAlert(id);
+  if ("error" in composed) return composed;
+
+  try {
+    const sent = await notifyLowStock(composed.message);
+    if (sent?.error) return { error: sent.error };
+  } catch (error) {
+    console.error("Erro ao enviar aviso manual ao Google Chat:", error);
+    return { error: "Falha ao enviar o aviso ao Google Chat" };
+  }
+
   return { success: true };
 }
 

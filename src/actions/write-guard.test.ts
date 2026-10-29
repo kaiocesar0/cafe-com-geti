@@ -16,6 +16,7 @@ import {
   createItem,
   deleteItem,
   listItems,
+  sendItemChatAlert,
   updateItem,
 } from "@/actions/items";
 import { logout } from "@/actions/auth";
@@ -91,6 +92,7 @@ function writesOn(pantry: Awaited<ReturnType<typeof stockedPantry>>) {
       ),
     "excluir contribuição": () => deleteContribution(contribution.id),
     "excluir item": () => deleteItem(cafe.id),
+    "avisar no chat": () => sendItemChatAlert(cafe.id),
   };
 }
 
