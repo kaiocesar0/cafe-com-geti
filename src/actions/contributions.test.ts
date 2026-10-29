@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { listContributions, deleteContribution, updateContribution } from "@/actions/contributions";
 import { adjustItemStock, listItems } from "@/actions/items";
-import { notifyLowStock } from "@/lib/notify";
+import { notifyStockAlert } from "@/lib/notify";
 import {
   getContributionSummariesForItem,
   getNextPersonNameForItem,
@@ -36,7 +36,7 @@ it("contribuição vigente aumenta estoque e total; passada só o total", async 
   expect(await getContributionSummariesForItem(cafe.id)).toEqual([
     expect.objectContaining({ employeeId: maria.id, totalQuantity: 5 }),
   ]);
-  expect(notifyLowStock).not.toHaveBeenCalled();
+  expect(notifyStockAlert).not.toHaveBeenCalled();
 });
 
 it("funcionário fora da fila registra e a quantidade entra no total", async () => {

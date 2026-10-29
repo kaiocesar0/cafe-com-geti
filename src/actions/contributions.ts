@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { contributions, employees, items } from "@/db/schema";
 import { parseDateInSaoPaulo, todayInSaoPaulo } from "@/lib/timezone";
-import { maybeNotifyStockCrossed } from "@/lib/stock-service";
+import { maybeNotifyStockChange } from "@/lib/stock-service";
 import { SIGN_IN_REQUIRED } from "@/lib/auth-messages";
 import { currentWriter } from "@/lib/authorization";
 import { z } from "zod";
@@ -68,7 +68,7 @@ export async function createContribution(
       .update(items)
       .set({ stock: newStock })
       .where(eq(items.id, parsed.data.itemId));
-    await maybeNotifyStockCrossed(
+    await maybeNotifyStockChange(
       parsed.data.itemId,
       previousStock,
       newStock,
@@ -150,7 +150,7 @@ export async function deleteContribution(
   await db.delete(contributions).where(eq(contributions.id, id));
 
   if (row.contribution.affectsStock) {
-    await maybeNotifyStockCrossed(row.item.id, previousStock, newStock);
+    await maybeNotifyStockChange(row.item.id, previousStock, newStock);
   }
 
   revalidatePath("/");
@@ -235,14 +235,14 @@ export async function updateContribution(
         .update(items)
         .set({ stock: finalStock })
         .where(eq(items.id, newItemId));
-      await maybeNotifyStockCrossed(oldItemId, oldItem.stock, stockWithoutOld);
-      await maybeNotifyStockCrossed(newItemId, newItem.stock, finalStock);
+      await maybeNotifyStockChange(oldItemId, oldItem.stock, stockWithoutOld);
+      await maybeNotifyStockChange(newItemId, newItem.stock, finalStock);
     } else {
       await db
         .update(items)
         .set({ stock: finalStock })
         .where(eq(items.id, oldItemId));
-      await maybeNotifyStockCrossed(oldItemId, oldItem.stock, finalStock);
+      await maybeNotifyStockChange(oldItemId, oldItem.stock, finalStock);
     }
   }
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Superseded by [ADR-0024](0024-chat-stock-zero-one-restock.md)
 
 ## Contexto
 
@@ -25,3 +25,4 @@ O texto no espaço do Chat nomeia o item, a quantidade nova e o **próximo da ve
 - Comparar before/after na mesma transação.
 - Reposição (0→5) depois 5→0 gera um **novo** alerta — correto.
 - Cron da Vercel não é necessário para este alerta.
+- Substituído pelo ADR-0024 (avisos em 0, 1 e reposição).

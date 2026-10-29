@@ -9,6 +9,7 @@ import {
 } from "@/actions/items";
 import type { Item } from "@/db/schema";
 import { itemKindLabels } from "@/lib/labels";
+import { FormDialog } from "@/components/form-dialog";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/form-select";
 import { Input } from "@/components/ui/input";
@@ -108,41 +109,49 @@ export function ItemsManager({
       >
         <div className="overflow-x-auto rounded-lg border">
           <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Estoque</TableHead>
-              {canWrite ? <TableHead /> : null}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{itemKindLabels[item.kind]}</TableCell>
-                <TableCell>
-                  {item.stock} {item.unitLabel}
-                </TableCell>
-                {canWrite ? (
-                  <TableCell>
-                    <div className="mb-2">
-                      <SendChatAlertButton itemId={item.id} itemName={item.name} />
-                    </div>
-                    <details>
-                      <summary className="cursor-pointer text-sm text-primary">
-                        Editar
-                      </summary>
-                      <div className="mt-3 min-w-64">
-                        <ItemForm item={item} />
-                      </div>
-                    </details>
-                  </TableCell>
-                ) : null}
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Estoque</TableHead>
+                {canWrite ? <TableHead /> : null}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{itemKindLabels[item.kind]}</TableCell>
+                  <TableCell>
+                    {item.stock} {item.unitLabel}
+                  </TableCell>
+                  {canWrite ? (
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        <SendChatAlertButton
+                          itemId={item.id}
+                          itemName={item.name}
+                        />
+                        <FormDialog
+                          trigger={
+                            <Button type="button" variant="outline" size="sm">
+                              Editar
+                            </Button>
+                          }
+                          title="Editar item"
+                          description={item.name}
+                        >
+                          {({ close }) => (
+                            <ItemForm item={item} onDone={close} />
+                          )}
+                        </FormDialog>
+                      </div>
+                    </TableCell>
+                  ) : null}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </SectionPanel>
     </div>

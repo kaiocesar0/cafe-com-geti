@@ -18,7 +18,7 @@ O estoque é reabastecido por contribuições dos funcionários, mas não há vi
 | **Contribuição passada** | Lançamento histórico (data + quem + quanto): entra só no **total contribuído** e no desempate. **Não** altera o estoque atual. |
 | **Ajuste de estoque** | Contagem física ou baixa: altera só o estoque, não o ranking. |
 | **Estoque** | Quantidade na prateleira. Sobe com contribuição vigente; muda com ajuste; ignora contribuição passada. |
-| **Alerta de estoque baixo** | POST no **espaço do Google Chat** ao **persistir** mudança em que o estoque **cruzou 1 para baixo** (antes > 1, depois ≤ 1). Exemplos: 2→0, 3→1, 5→0. Não dispara ao abrir o app nem em 1→0. |
+| **Alerta de estoque** | POST no **espaço do Google Chat** ao **persistir** mudança em que o estoque chega a **1** (vindo de cima), chega a **0**, ou **sai de 0 ou 1 para cima**. Exemplos: 3→1, 2→0, 1→0, 0→4. Não dispara ao abrir o app, em 5→2, ao criar/excluir item nem em contribuição passada. |
 | **Fila de item** | Funcionários **ativos** cuja preferência cobre o **tipo** daquele item. |
 | **Total contribuído** | Soma das unidades cadastradas daquele item (vigentes + passadas). 1 pacote = 1. |
 | **Próximo da vez** | Na fila do item: menor total; empate = devendo há mais tempo; se ninguém nunca trouxe = ordem de cadastro. |
@@ -27,7 +27,7 @@ O estoque é reabastecido por contribuições dos funcionários, mas não há vi
 ## Atores
 
 - **Funcionário**: qualquer pessoa com o link; registra, consulta, cadastra itens/pessoas. Sem autenticação no MVP.
-- **Quem configura**: env na Vercel (`DATABASE_URL`, webhook do Chat).
+- **Quem configura**: env na Vercel (`DATABASE_URL`, webhook do Chat, `APP_URL`).
 
 ## Requisitos funcionais (MVP)
 
@@ -41,7 +41,7 @@ O estoque é reabastecido por contribuições dos funcionários, mas não há vi
 | RF-06 | Próximo da vez pela regra de total + desempate |
 | RF-07 | Histórico de contribuições (vigentes e passadas) |
 | RF-08 | Lançar contribuições passadas sem alterar estoque |
-| RF-09 | Alertar o grupo no Chat quando o estoque cruzar 1 para baixo, citando o próximo da vez |
+| RF-09 | Alertar o grupo no Chat ao chegar em 1, ao acabar (0) e ao repor saindo de 0/1, citando o próximo da vez quando couber |
 | RF-10 | Editar e excluir contribuição (recalcula total; vigente desfaz/reaplica estoque) |
 | RF-11 | Contagem no cadastro do item e −1/+1 no dashboard |
 | RF-12 | Qualquer funcionário pode contribuir qualquer item (total soma; próximo só a fila) |
@@ -69,7 +69,7 @@ Next.js (App Router) + shadcn/ui + Tailwind, **Drizzle**, Neon (branches **hml**
 - [ADR-0008](docs/adr/0008-filter-queue-coffee-drinkers.md) — filtro = quem toma café
 - [ADR-0009](docs/adr/0009-past-contributions-screen.md) — contribuições passadas
 - [ADR-0010](docs/adr/0010-employee-active-flag.md) — flag ativo
-- [ADR-0011](docs/adr/0011-chat-on-stock-reaches-one.md) — cruza 1 para baixo
+- [ADR-0011](docs/adr/0011-chat-on-stock-reaches-one.md) — cruza 1 para baixo *(superseded)*
 - [ADR-0012](docs/adr/0012-neon.md) — Neon
 - [ADR-0013](docs/adr/0013-visual-identity.md) — tokens sem marca DPE
 - [ADR-0014](docs/adr/0014-next-shadcn.md) — Next + shadcn
@@ -82,3 +82,4 @@ Next.js (App Router) + shadcn/ui + Tailwind, **Drizzle**, Neon (branches **hml**
 - [ADR-0021](docs/adr/0021-spec-then-code.md) — spec antes do código
 - [ADR-0022](docs/adr/0022-drizzle.md) — Drizzle
 - [ADR-0023](docs/adr/0023-neon-hml-production-branches.md) — branches hml / production
+- [ADR-0024](docs/adr/0024-chat-stock-zero-one-restock.md) — avisos 0 / 1 / reposição

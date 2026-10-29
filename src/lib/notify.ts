@@ -6,16 +6,92 @@ export function chatAlertEnvironmentLabel(
   return "local";
 }
 
-export function shouldNotifyStockCrossedOne(
+export type StockAlertKind = "low" | "empty" | "restocked";
+
+export function stockAlertKind(
   previous: number,
   next: number,
-): boolean {
-  return previous > 1 && next <= 1;
+): StockAlertKind | null {
+  if (next === 1 && previous > 1) return "low";
+  if (next === 0 && previous > 0) return "empty";
+  if (previous <= 1 && next > previous) return "restocked";
+  return null;
 }
 
-export async function notifyLowStock(
-  message: string,
-): Promise<{ error?: string }> {
+export function formatUnitLabel(quantity: number, unitLabel: string): string {
+  return quantity === 1 ? unitLabel : `${unitLabel}s`;
+}
+
+export function normalizeAppUrl(
+  url: string | undefined | null,
+): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed) return null;
+  return trimmed.replace(/\/+$/, "");
+}
+
+function nextPersonLine(nextPerson: string | null): string {
+  return nextPerson
+    ? `Próximo da vez: *${nextPerson}*`
+    : "Próximo da vez: ninguém na fila";
+}
+
+function withOptionalAppUrl(body: string, appUrl: string | null): string {
+  return appUrl ? `${body}\n${appUrl}` : body;
+}
+
+export function buildStockAlertMessage(input: {
+  kind: StockAlertKind;
+  itemName: string;
+  newStock: number;
+  unitLabel: string;
+  nextPerson: string | null;
+  appUrl: string | null;
+}): string {
+  const { kind, itemName, newStock, unitLabel, nextPerson, appUrl } = input;
+
+  if (kind === "low") {
+    return withOptionalAppUrl(
+      `⚠️ Estoque baixo: *${itemName}* (1 ${unitLabel})\n${nextPersonLine(nextPerson)}`,
+      appUrl,
+    );
+  }
+
+  if (kind === "empty") {
+    return withOptionalAppUrl(
+      `⚠️ Acabou: *${itemName}*\n${nextPersonLine(nextPerson)}`,
+      appUrl,
+    );
+  }
+
+  return withOptionalAppUrl(
+    `*${itemName}*: estoque agora é ${newStock} ${formatUnitLabel(newStock, unitLabel)}`,
+    appUrl,
+  );
+}
+
+export function buildLowStockMessage(
+  itemName: string,
+  newStock: number,
+  nextPerson: string | null | string[],
+): string {
+  const names = Array.isArray(nextPerson)
+    ? nextPerson
+    : nextPerson
+      ? [nextPerson]
+      : [];
+
+  const nextBlock =
+    names.length === 0
+      ? "🤑 Próximo da vez:\nninguém na fila"
+      : `🤑 Próximo da vez:\n${names
+          .map((name, i) => `${i + 1}º ${name}${i < names.length - 1 ? ";" : ""}`)
+          .join("\n")}`;
+
+  return `⚠️ Estoque baixo: ${itemName} (${newStock} restante)\n${nextBlock}`;
+}
+
+async function postChatMessage(message: string): Promise<{ error?: string }> {
   const url = process.env.GOOGLE_CHAT_WEBHOOK_URL;
   if (!url) {
     console.warn("GOOGLE_CHAT_WEBHOOK_URL não configurada; alerta ignorado");
@@ -43,23 +119,12 @@ export async function notifyLowStock(
   }
 }
 
-export function buildLowStockMessage(
-  itemName: string,
-  newStock: number,
-  nextPerson: string | null | string[],
-): string {
-  const names = Array.isArray(nextPerson)
-    ? nextPerson
-    : nextPerson
-      ? [nextPerson]
-      : [];
+export async function notifyStockAlert(message: string): Promise<void> {
+  await postChatMessage(message);
+}
 
-  const nextBlock =
-    names.length === 0
-      ? "🤑 Próximo da vez:\nninguém na fila"
-      : `🤑 Próximo da vez:\n${names
-          .map((name, i) => `${i + 1}º ${name}${i < names.length - 1 ? ";" : ""}`)
-          .join("\n")}`;
-
-  return `⚠️ Estoque baixo: ${itemName} (${newStock} restante)\n${nextBlock}`;
+export async function notifyLowStock(
+  message: string,
+): Promise<{ error?: string }> {
+  return postChatMessage(message);
 }
